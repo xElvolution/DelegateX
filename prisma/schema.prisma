@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  address     String       @unique
+  createdAt   DateTime     @default(now())
+  tasks       Task[]
+  permissions Permission[]
+  spending    Spending[]
+}
+
+model Permission {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  tokenAddress     String
+  maxAmount        BigInt
+  period           Int
+  expiry           DateTime
+  allowedContracts String[]
+  active           Boolean   @default(true)
+  erc7715Sig       String?
+  createdAt        DateTime  @default(now())
+  revokedAt        DateTime?
+  tasks            Task[]
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  prompt       String
+  status       String     @default("PENDING")
+  result       String?
+  totalCost    Float      @default(0)
+  agentCount   Int        @default(0)
+  duration     Int?
+  createdAt    DateTime   @default(now())
+  completedAt  DateTime?
+  agents       SubAgent[]
+  payments     Payment[]
+}
+
+model SubAgent {
+  id          String    @id @default(cuid())
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id])
+  agentType   String
+  budget      Float
+  spent       Float     @default(0)
+  status      String    @default("PENDING")
+  result      String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  payments    Payment[]
+}
+
+model Payment {
+  id         String    @id @default(cuid())
+  taskId     String
+  task       Task      @relation(fields: [taskId], references: [id])
+  subAgentId String?
+  subAgent   SubAgent? @relation(fields: [subAgentId], references: [id])
+  amount     Float
+  recipient  String
+  txHash     String?
+  oneShotTx  String?
+  status     String    @default("PENDING")
+  createdAt  DateTime  @default(now())
+}
+
+model Spending {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  date   DateTime @default(now())
+  amount Float
+  taskId String?
+}

@@ -1,0 +1,1569 @@
+CRITICAL UI REQUIREMENTS — READ BEFORE ANY CODE
+
+You are building DELEGATE — a premium, 
+production-grade Web3 application.
+The standard is Linear.app meets Hyperliquid 
+meets Vercel. Dark, precise, powerful.
+Every screen should feel like a $200K agency 
+built it.
+
+DESIGN SYSTEM:
+
+Colors:
+--bg: #0A0A0F
+--surface: #111118
+--card: #16161F
+--border: #ffffff12
+--border-hover: #ffffff24
+--metamask: #F6851B (MetaMask orange — hero accent)
+--primary: #F6851B
+--secondary: #7C3AED (purple — agent/AI)
+--green: #00FF87 (success/active)
+--red: #FF4444 (error/revoke)
+--blue: #3B82F6 (info/Venice AI)
+--text: #FFFFFF
+--muted: #6B7280
+--mono: 'JetBrains Mono', monospace
+
+Typography:
+--font: 'Inter', sans-serif
+--mono: 'JetBrains Mono', monospace
+Headings: weight 700, letter-spacing -0.02em
+Body: weight 400, line-height 1.6
+Fluid: clamp() everywhere
+
+Spacing: 4px base unit
+Section padding: 96px 0
+Container: max-width 1200px
+
+GSAP (register all plugins):
+— SplitText: hero headline char stagger 0.02s
+— ScrollTrigger: fadeUp all sections y:30→0
+— CounterAnimation: stats 0→target on scroll
+— ParticleField: canvas background hero
+— MotionPath: agent network visualization
+— DrawSVG: permission flow diagram lines
+— MagneticButton: all CTAs
+— ALL in useEffect with cleanup
+— ALL SSR safe (typeof window check)
+
+Framer Motion:
+— Page enter: opacity 0→1, y:20→0, 0.4s
+— Card stagger: staggerChildren 0.07s
+— Agent nodes: scale 0→1 with spring
+— Permission bars: width 0→% animated
+— Feed items: x:100→0 slide from right
+— Modal: scale 0.95→1, blur 0→0
+— AnimatePresence: all conditional renders
+— ALL variants defined OUTSIDE components
+
+NEVER:
+— No white backgrounds
+— No generic crypto illustrations
+— No default Tailwind blue
+— No missing hover states
+— No lorem ipsum
+— No font < 14px
+— No more than 2 accent colors per page
+
+Reference aesthetic:
+— Hyperliquid (trading terminal precision)
+— Linear.app (clean dark system)
+— Vercel (minimal powerful)
+— Rainbow Wallet (Web3 premium)
+
+If it doesn't look like this standard — rebuild.
+
+---
+
+PROJECT: DELEGATE
+Tagline: "One permission. Infinite agents."
+Stack: Next.js 14 (App Router) + Tailwind CSS
+       + Framer Motion + GSAP
+       + MetaMask Smart Accounts Kit
+       + wagmi + RainbowKit
+       + Venice AI (Llama 3.3 70B)
+       + 1Shot Permissionless Relayer
+       + x402 Protocol
+       + Supabase + Prisma
+       + Solidity (Ethereum mainnet)
+
+---
+
+PROJECT STRUCTURE:
+/delegate
+  /app
+    /page.tsx (landing)
+    /app/page.tsx (main task interface)
+    /dashboard/page.tsx (history + permissions)
+    /how-it-works/page.tsx
+    /docs/page.tsx
+    /api
+      /auth
+        /nonce/route.ts
+        /verify/route.ts
+        /logout/route.ts
+      /tasks
+        /create/route.ts
+        /status/[taskId]/route.ts
+        /history/route.ts
+      /permissions
+        /grant/route.ts
+        /revoke/route.ts
+        /active/route.ts
+      /agents
+        /spawn/route.ts
+        /status/[agentId]/route.ts
+      /x402
+        /pay/route.ts
+        /verify/route.ts
+  /components
+    /animations
+      /ParticleField.tsx
+      /AgentNetwork.tsx
+      /TextSplit.tsx
+      /CounterAnimation.tsx
+      /MagneticButton.tsx
+      /ScrollReveal.tsx
+      /PermissionFlow.tsx
+      /TypewriterText.tsx
+    /sections (landing page)
+      /Hero.tsx
+      /HowItWorks.tsx
+      /WhyDelegate.tsx
+      /TechStack.tsx
+      /LivePreview.tsx
+      /CTA.tsx
+      /Footer.tsx
+    /app (main application)
+      /PermissionCard.tsx
+      /TaskInput.tsx
+      /AgentTree.tsx
+      /AgentNode.tsx
+      /LiveFeed.tsx
+      /FeedItem.tsx
+      /ResultDisplay.tsx
+      /BudgetMeter.tsx
+    /dashboard
+      /TaskHistory.tsx
+      /TaskRow.tsx
+      /PermissionManager.tsx
+      /PermissionRow.tsx
+      /SpendingChart.tsx
+    /ui
+      /Button.tsx
+      /Card.tsx
+      /Badge.tsx
+      /Modal.tsx
+      /Skeleton.tsx
+      /Input.tsx
+      /Slider.tsx
+      /Toggle.tsx
+      /Tooltip.tsx
+      /Progress.tsx
+      /CopyButton.tsx
+      /AddressChip.tsx
+    /layout
+      /Header.tsx
+      /Footer.tsx
+      /WalletButton.tsx
+  /contracts
+    /DelegateCore.sol
+    /SubAgentRegistry.sol
+    /X402PaymentVerifier.sol
+    /scripts
+      /deploy.ts
+  /agent
+    /orchestrator.ts
+    /planner.ts
+    /executor.ts
+    /x402.ts
+    /oneshot.ts
+    /venice.ts
+    /websocket.ts
+    /demo.ts
+  /lib
+    /wagmi.ts
+    /siwe.ts
+    /supabase.ts
+    /venice.ts
+    /oneshot.ts
+    /x402.ts
+    /permissions.ts
+  /hooks
+    /usePermission.ts
+    /useTask.ts
+    /useAgents.ts
+    /useWallet.ts
+    /useDemo.ts
+  /types
+    /index.ts
+  /prisma
+    /schema.prisma
+
+---
+
+STEP 1 — DATABASE SCHEMA
+
+model User {
+  id              String    @id @default(cuid())
+  address         String    @unique
+  createdAt       DateTime  @default(now())
+  tasks           Task[]
+  permissions     Permission[]
+  spending        Spending[]
+}
+
+model Permission {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(
+                    fields:[userId], 
+                    references:[id]
+                  )
+  tokenAddress    String
+  maxAmount       BigInt
+  period          Int       // seconds
+  expiry          DateTime
+  allowedContracts String[]
+  active          Boolean   @default(true)
+  erc7715Sig      String?
+  createdAt       DateTime  @default(now())
+  revokedAt       DateTime?
+  tasks           Task[]
+}
+
+model Task {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(
+                    fields:[userId],
+                    references:[id]
+                  )
+  permissionId    String
+  permission      Permission @relation(
+                    fields:[permissionId],
+                    references:[id]
+                  )
+  prompt          String
+  status          String    @default("PENDING")
+  result          String?
+  totalCost       Float     @default(0)
+  agentCount      Int       @default(0)
+  duration        Int?      // ms
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  agents          SubAgent[]
+  payments        Payment[]
+}
+
+model SubAgent {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(
+                    fields:[taskId],
+                    references:[id]
+                  )
+  agentType       String
+  budget          Float
+  spent           Float     @default(0)
+  status          String    @default("PENDING")
+  result          String?
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  payments        Payment[]
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(
+                    fields:[taskId],
+                    references:[id]
+                  )
+  subAgentId      String?
+  subAgent        SubAgent? @relation(
+                    fields:[subAgentId],
+                    references:[id]
+                  )
+  amount          Float
+  recipient       String
+  txHash          String?
+  oneShotTx       String?
+  status          String    @default("PENDING")
+  createdAt       DateTime  @default(now())
+}
+
+model Spending {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(
+                    fields:[userId],
+                    references:[id]
+                  )
+  date            DateTime  @default(now())
+  amount          Float
+  taskId          String?
+}
+
+---
+
+STEP 2 — SMART CONTRACTS
+
+contracts/DelegateCore.sol:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+Build complete production contract:
+
+Imports:
+- OpenZeppelin ReentrancyGuard
+- OpenZeppelin Pausable
+- OpenZeppelin Ownable
+- IERC20 for USDC/USDT
+
+Structs:
+struct Permission {
+  address token
+  uint256 maxAmount
+  uint256 period
+  uint256 expiry
+  address[] allowedContracts
+  bool active
+  uint256 totalSpent
+  uint256 periodStart
+}
+
+struct SubAgentConfig {
+  bytes32 taskId
+  address token
+  uint256 budget
+  uint256 spent
+  uint256 expiry
+  bool active
+}
+
+State:
+mapping(address => Permission) public permissions
+mapping(address => SubAgentConfig) public subAgents
+mapping(bytes32 => address[]) public taskAgents
+address public delegateOrchestrator
+address public oneShotRelayer
+
+Functions (complete implementation):
+grantPermission(
+  address token,
+  uint256 maxAmount,
+  uint256 period,
+  uint256 expiry,
+  address[] calldata allowedContracts
+) external
+— Stores ERC-7715 style permission
+— Emits PermissionGranted
+
+revokePermission() external
+— User can revoke anytime instantly
+
+spawnSubAgent(
+  bytes32 taskId,
+  address subAgent,
+  address token,
+  uint256 budget,
+  uint256 expiry
+) external onlyOrchestrator
+— Creates narrower sub-agent permission
+— budget must be < remaining parent permission
+
+executeWithPermission(
+  address target,
+  bytes calldata data,
+  uint256 amount
+) external onlySubAgent
+— Checks budget not exceeded
+— Checks expiry not passed
+— Checks target is allowedContract
+— Executes via 1Shot relayer
+— Updates spent amounts
+— Emits PaymentExecuted
+
+completeTask(bytes32 taskId) external onlyOrchestrator
+— Marks all sub-agents for task as complete
+— Releases any unspent budget
+
+getRemainingBudget(address user) external view
+getPermission(address user) external view
+isSubAgent(address agent) external view
+
+Events:
+PermissionGranted(user, token, maxAmount, expiry)
+PermissionRevoked(user, timestamp)
+SubAgentSpawned(taskId, subAgent, budget)
+PaymentExecuted(subAgent, target, amount, txHash)
+TaskCompleted(taskId, totalSpent)
+
+Security:
+ReentrancyGuard on executeWithPermission
+Pausable emergency stop
+Budget checks before every execution
+Expiry checks on every call
+onlyOrchestrator modifier
+onlySubAgent modifier
+
+contracts/SubAgentRegistry.sol:
+Track all spawned sub-agents and their tasks.
+Full implementation with events.
+
+contracts/X402PaymentVerifier.sol:
+Verify x402 payments from sub-agents.
+Full implementation.
+
+contracts/scripts/deploy.ts:
+Deploy all three contracts to Ethereum mainnet.
+Save addresses to .env.local automatically.
+
+---
+
+STEP 3 — AGENT SYSTEM
+
+agent/venice.ts:
+Venice AI integration (privacy-first LLM):
+
+import OpenAI from 'openai' 
+// Venice is OpenAI compatible
+
+const venice = new OpenAI({
+  apiKey: process.env.VENICE_API_KEY,
+  baseURL: 'https://api.venice.ai/api/v1'
+})
+
+export async function planTask(
+  userPrompt: string,
+  availableBudget: number
+): Promise<TaskPlan>
+
+interface TaskPlan {
+  subtasks: Subtask[]
+  reasoning: string
+  estimatedCost: number
+  estimatedDuration: number
+}
+
+interface Subtask {
+  id: string
+  type: 'DATA_FETCH' | 'AI_INFERENCE' | 
+        'CHAIN_READ' | 'CHAIN_WRITE' | 
+        'CALCULATION'
+  description: string
+  budget: number
+  dependencies: string[]
+  endpoint?: string
+  prompt?: string
+}
+
+export async function executeSubtask(
+  subtask: Subtask,
+  context: any
+): Promise<SubtaskResult>
+
+export async function synthesizeResults(
+  subtasks: Subtask[],
+  results: SubtaskResult[],
+  originalPrompt: string
+): Promise<string>
+
+Use model: venice-uncensored or llama-3.3-70b
+
+agent/oneshot.ts:
+1Shot Permissionless Relayer integration:
+
+export async function relayTransaction(
+  delegation: DelegationConfig,
+  calls: Call[]
+): Promise<{ txHash: string, status: string }>
+
+interface DelegationConfig {
+  delegator: string
+  delegate: string
+  token: string
+  amount: bigint
+  expiry: number
+}
+
+interface Call {
+  to: string
+  value: bigint
+  data: string
+}
+
+export async function getRelayStatus(
+  txHash: string
+): Promise<RelayStatus>
+
+agent/x402.ts:
+x402 payment protocol implementation:
+
+export async function payForResource(
+  url: string,
+  maxAmount: number,
+  agentWallet: string,
+  delegation: any
+): Promise<{ proof: string, response: any }>
+
+// Fetches resource, handles 402 response,
+// pays via 1Shot relayer using ERC-7710 delegation,
+// retries with payment proof header
+
+export async function create402Middleware(
+  amount: number,
+  description: string
+) // For DELEGATE's own x402-gated endpoints
+
+agent/planner.ts:
+Venice AI task planning:
+
+export async function planTask(
+  prompt: string,
+  budget: number,
+  userAddress: string
+): Promise<TaskPlan>
+
+// Examples of what it can plan:
+// "Research top DeFi yields" →
+//   subtask1: fetch DeFiLlama data (x402, $0.001)
+//   subtask2: fetch on-chain rates (RPC call)
+//   subtask3: Venice AI synthesis ($0.05)
+//   subtask4: return formatted result
+
+// "Swap half my ETH to USDC" →
+//   subtask1: check ETH balance
+//   subtask2: get best swap route
+//   subtask3: execute swap via delegation
+//   subtask4: confirm and report
+
+agent/executor.ts:
+Sub-agent execution engine:
+
+export async function executeTask(
+  task: Task,
+  permission: Permission,
+  onProgress: (update: AgentUpdate) => void
+): Promise<TaskResult>
+
+interface AgentUpdate {
+  type: 'AGENT_SPAWNED' | 'PAYMENT_MADE' | 
+        'SUBTASK_COMPLETE' | 'TASK_COMPLETE' |
+        'ERROR'
+  agentId?: string
+  agentType?: string
+  amount?: number
+  message?: string
+  timestamp: number
+}
+
+// Spawns sub-agents in parallel where possible
+// Uses Promise.all for independent subtasks
+// Sequential for dependent subtasks
+// Each sub-agent gets ERC-7710 redelegation
+// All payments via 1Shot relayer
+// Streams progress via WebSocket
+
+agent/orchestrator.ts:
+Main orchestration loop:
+
+export async function runTask(params: {
+  prompt: string
+  userAddress: string
+  permission: Permission
+  taskId: string
+  ws: WebSocket
+}): Promise<TaskResult>
+
+// 1. Plan with Venice AI
+// 2. Spawn sub-agents via contract
+// 3. Execute in parallel/sequential
+// 4. Synthesize results
+// 5. Return to user
+// Stream all progress to WebSocket
+
+agent/websocket.ts:
+WebSocket server on port 3001:
+
+// Broadcasts all agent activity:
+{
+  type: "AGENT_SPAWNED",
+  taskId: string,
+  agent: {
+    id: string,
+    type: string,
+    budget: number,
+    status: "ACTIVE"
+  },
+  timestamp: number
+}
+
+{
+  type: "PAYMENT_MADE",
+  taskId: string,
+  agentId: string,
+  amount: number,
+  recipient: string,
+  oneShotTx: string,
+  timestamp: number
+}
+
+{
+  type: "SUBTASK_COMPLETE",
+  taskId: string,
+  agentId: string,
+  result: string,
+  timestamp: number
+}
+
+{
+  type: "TASK_COMPLETE",
+  taskId: string,
+  result: string,
+  totalCost: number,
+  agentCount: number,
+  duration: number,
+  timestamp: number
+}
+
+agent/demo.ts:
+Demo mode — realistic simulation:
+
+export function startDemoMode(ws: WebSocket): void
+
+// Fires this exact sequence every 30 seconds:
+// 1. User submits: "Research top 3 DeFi yields
+//    on Ethereum and summarize"
+// 2. DELEGATE plans: 4 sub-agents
+// 3. Agent spawned: Data Fetcher ($1 budget)
+// 4. Payment: 0.001 USDC to DeFiLlama API
+// 5. Agent spawned: Chain Analyzer ($1 budget)
+// 6. Payment: 0.002 USDC to RPC endpoint
+// 7. Agent spawned: Venice AI ($2 budget)
+// 8. Payment: 0.05 USDC to Venice inference
+// 9. All complete
+// 10. Result delivered
+// 11. "Total cost: $0.053. You signed: 0 txs."
+// Randomize amounts slightly each cycle
+
+---
+
+STEP 4 — AUTH
+
+lib/siwe.ts + app/api/auth/:
+Full SIWE implementation.
+Nonce generation, signature verification,
+session creation via Supabase.
+
+lib/wagmi.ts:
+Configure wagmi:
+— Ethereum mainnet + Sepolia testnet
+— RainbowKit with MetaMask prominent
+— SIWE connector
+— MetaMask Smart Accounts Kit integration:
+  import { 
+    createSmartAccountClient 
+  } from '@metamask/smart-accounts-kit'
+
+  Configure ERC-7715 permission requests
+  Configure ERC-7710 redelegation
+
+---
+
+STEP 5 — API ROUTES
+
+app/api/tasks/create/route.ts:
+POST { prompt, permissionId }
+Auth: required
+1. Validate permission is active + has budget
+2. Create task in DB
+3. Start orchestrator (background)
+4. Return taskId immediately
+5. Client connects to WebSocket for updates
+
+app/api/tasks/status/[taskId]/route.ts:
+GET → real-time task status
+SSE stream of updates
+
+app/api/tasks/history/route.ts:
+GET → all completed tasks with costs
+
+app/api/permissions/grant/route.ts:
+POST { token, maxAmount, period, expiry,
+       allowedContracts }
+1. Trigger MetaMask ERC-7715 permission request
+2. Store permission in DB + contract
+3. Return permission object
+
+app/api/permissions/revoke/route.ts:
+POST { permissionId }
+1. Call contract.revokePermission()
+2. Update DB active = false
+
+app/api/permissions/active/route.ts:
+GET → all active permissions for user
+
+app/api/agents/spawn/route.ts:
+POST { taskId, agentType, budget }
+Internal use by orchestrator
+
+app/api/x402/verify/route.ts:
+POST { txHash, expectedAmount, recipient }
+DELEGATE's own x402 facilitator endpoint
+Returns { valid, executionMs }
+
+---
+
+STEP 6 — FRONTEND
+
+---
+
+PAGE 1: LANDING (app/page.tsx)
+
+SECTION 1 — HERO
+
+Full viewport height.
+Background:
+— AgentNetwork canvas (NOT generic particles)
+  Visualizes: central DELEGATE node (orange)
+  Connected to 4 sub-agent nodes (purple)
+  Each sub-agent connected to API endpoints
+  Nodes pulse when "active"
+  Lines animate from center outward
+  Built with GSAP MotionPath + Canvas
+  This IS the product visualization
+
+Content (centered, above canvas):
+— Badge:
+  [🦊 MetaMask Smart Accounts Kit]
+  Orange border, orange text, orange dot
+
+— Headline (GSAP SplitText char stagger):
+  Line 1: "One permission."
+  Line 2: "Infinite agents."
+  font-size: clamp(3.5rem, 9vw, 7rem)
+  font-weight: 700
+  letter-spacing: -0.04em
+  Line 1: white
+  Line 2: gradient orange→purple
+    background: linear-gradient(
+      135deg, #F6851B, #7C3AED
+    )
+    -webkit-background-clip: text
+    -webkit-text-fill-color: transparent
+
+— Subheadline (fade after headline):
+  "Grant DELEGATE a spending limit.
+   Watch AI agents coordinate, pay, and deliver.
+   You sign once. They handle everything."
+  color: #6B7280
+  font-size: clamp(1rem, 2vw, 1.2rem)
+  max-width: 540px
+  text-align: center
+
+— CTAs (MagneticButton):
+  Primary: "Launch App"
+    → /app
+    bg: linear-gradient(135deg, #F6851B, #EA580C)
+    color: white, font-weight: 700
+    padding: 14px 32px
+    border-radius: 10px
+    box-shadow: 0 0 40px rgba(246,133,27,0.3)
+    hover: shadow intensifies
+  Ghost: "How It Works"
+    → /how-it-works
+    border: 1px solid #ffffff20
+
+— Bottom of hero — live stats bar
+  (CounterAnimation, ScrollTrigger):
+  Tasks Completed: 2,847
+  Total Agents Spawned: 11,388
+  USDC Processed: $47,293
+  Avg Signatures Per Task: 1
+
+SECTION 2 — THE PROBLEM (ScrollTrigger)
+
+Dark band. 2 columns.
+
+Left: The old way
+3 items with red X:
+✗ Agent wants data → sign tx
+✗ Agent needs to swap → sign tx
+✗ Agent wants to rebalance → sign tx
+"Wallet becomes a notification machine."
+
+Right: With DELEGATE
+3 items with green check:
+✓ Grant one permission (sign once)
+✓ Set your budget and rules
+✓ Agents work autonomously forever
+"Your wallet becomes an autonomous economy."
+
+Visual: 
+Left side has a frustrated wallet icon
+Right side has an orchestrating network
+
+SECTION 3 — HOW IT WORKS
+
+Headline: "Four steps to autonomy."
+
+4 steps, horizontal on desktop, 
+vertical on mobile.
+Animated connecting line (GSAP DrawSVG)
+draws left to right as user scrolls:
+
+Step 1: Grant (ERC-7715)
+— Icon: key (orange)
+— Title: "Grant permission"
+— Description: "Tell DELEGATE what it can spend,
+  on what contracts, for how long. One signature."
+— Visual: MetaMask popup mockup
+  (dark card showing the permission request)
+
+Step 2: Task
+— Icon: message (white)
+— Title: "Give it a task"
+— Description: "Type anything. Research yields,
+  execute a swap, monitor your positions."
+— Visual: Chat input with placeholder
+
+Step 3: Delegate (ERC-7710)
+— Icon: network (purple)
+— Title: "Sub-agents coordinate"
+— Description: "DELEGATE spawns specialized agents,
+  each with a narrower permission slice,
+  via ERC-7710 redelegation."
+— Visual: Agent tree expanding
+
+Step 4: Done
+— Icon: checkmark (green)
+— Title: "Result delivered"
+— Description: "Agents pay their own way via x402
+  and 1Shot. You get the result.
+  You signed: 1 transaction."
+— Visual: Result card
+
+SECTION 4 — LIVE PREVIEW
+
+Headline: "Watch it work."
+Subheadline: "A real task. Live agents. One permission."
+
+Full-width dark terminal/app preview:
+Shows the main app interface statically:
+— Left: Permission card (granted)
+— Center: Task input with example task
+— Right: Agent tree with 4 nodes
+
+Below: "Try it yourself →" CTA button
+→ /app
+
+SECTION 5 — TECH STACK
+
+Headline: "Built on the best."
+
+6 tech cards in 3×2 grid:
+
+1. MetaMask Smart Accounts Kit
+   — Orange logo
+   — "ERC-7715 + ERC-7710 permissions"
+   
+2. Venice AI
+   — Purple logo
+   — "Privacy-first Llama 3.3 70B inference"
+
+3. 1Shot Relayer
+   — Blue logo  
+   — "Permissionless ERC-7710 relay"
+
+4. x402 Protocol
+   — Green logo
+   — "Machine-to-machine payments"
+
+5. Ethereum
+   — Gradient logo
+   — "Smart contract execution layer"
+
+6. RainbowKit
+   — Rainbow gradient
+   — "Seamless wallet connection"
+
+Each card:
+bg: #16161F
+border: 1px solid #ffffff12
+border-radius: 12px
+hover: border brightens, subtle glow
+Framer stagger on enter
+
+SECTION 6 — USE CASES
+
+Headline: "What will you delegate?"
+
+3 large cards (Framer stagger):
+
+Card 1: DeFi Research & Execution
+"Research the top 3 DeFi yields on Ethereum
+ and move $50 to the best one"
+→ 4 agents, $0.053 cost, 1 signature
+
+Card 2: Portfolio Monitoring  
+"Monitor my positions and alert me
+ if any drop more than 10%"
+→ 2 agents, ongoing, 1 permission
+
+Card 3: Smart Batching
+"Find the cheapest gas window today
+ and batch my pending transactions"
+→ 3 agents, $0.02 cost, 1 signature
+
+Each card:
+— Prompt shown in monospace quote
+— Agent count + cost stat
+— "Signatures: 1" always highlighted
+  in orange (the point)
+
+SECTION 7 — CTA BAND
+
+Full width, dark orange gradient band:
+background: linear-gradient(
+  135deg,
+  rgba(246,133,27,0.15) 0%,
+  rgba(124,58,237,0.15) 100%
+)
+border-top: 1px solid #F6851B20
+border-bottom: 1px solid #F6851B20
+
+Content centered:
+Headline: "Start delegating."
+Subheadline: "Connect your wallet. Grant one permission.
+              Watch your agents work."
+CTA: "Launch App" (large, orange gradient)
+
+SECTION 8 — FOOTER
+
+DELEGATE logo + tagline:
+"Autonomous wallet intelligence,
+ powered by MetaMask Smart Accounts Kit"
+
+Links row:
+App | Dashboard | How It Works | Docs | GitHub
+
+Tech row:
+"Built with MetaMask SDK × Venice AI × 
+ 1Shot × x402"
+
+Bottom: "Submitted to MetaMask Smart Accounts Kit 
+         x 1Shot API x Venice AI Dev Cook Off"
+
+---
+
+PAGE 2: MAIN APP (/app/page.tsx)
+Protected — wallet must be connected.
+
+This is the DEMO PAGE judges will use.
+Make it perfect.
+
+LAYOUT: Three-column desktop
+Left: Permission Panel (280px)
+Center: Task Interface (flexible)
+Right: Agent Dashboard (320px)
+
+HEADER (sticky):
+Left: DELEGATE logo (small)
+Center: "● DEMO MODE" pulsing badge 
+        (when demo is active)
+Right: Budget remaining indicator + 
+       Wallet address + Disconnect
+
+---
+
+LEFT PANEL — Permission Panel
+
+Header: "Your Permission"
+
+IF NO PERMISSION GRANTED:
+Empty state card:
+— Large key icon (orange, glowing)
+— "No permission granted"
+— Description: "Grant DELEGATE a spending limit
+  to start delegating tasks autonomously."
+— "Grant Permission" button (full width, orange)
+  → Opens Permission Modal
+
+IF PERMISSION ACTIVE:
+Permission Card:
+┌──────────────────────────────┐
+│ ● ACTIVE                     │
+│                              │
+│ Budget                       │
+│ $10 USDC / hour              │
+│                              │
+│ Budget Meter (animated bar): │
+│ ████████░░ $7.43 remaining   │
+│                              │
+│ Expires in                   │
+│ 23h 14m 32s (countdown)      │
+│                              │
+│ Allowed Contracts            │
+│ • Venice AI API              │
+│ • DeFiLlama                  │
+│ • Approved DEXes             │
+│                              │
+│ Granted via                  │
+│ ERC-7715 (MetaMask)          │
+│                              │
+│ [Modify] [Revoke]            │
+└──────────────────────────────┘
+
+Budget Meter:
+— Orange fill bar
+— Animates as agents spend
+— Shows remaining amount
+— Turns red when < 20% remaining
+
+Spending History (below card):
+Last 5 payments:
+→ Venice AI: -$0.05 (2m ago)
+→ DeFiLlama: -$0.001 (2m ago)
+→ RPC: -$0.002 (3m ago)
+
+---
+
+PERMISSION MODAL (Framer scale + blur):
+
+Opens when "Grant Permission" clicked.
+
+Steps (4-step wizard):
+
+Step 1: Set Budget
+— Slider: $1 to $100 USDC / hour
+  Orange slider, real-time value display
+— Presets: $5 | $10 | $25 | $50
+— "Recommended for most tasks: $10/hr"
+
+Step 2: Set Duration
+— Options: 1 hour | 6 hours | 24 hours | 1 week
+— Expiry shown: "Expires: May 27, 2026 3:45 PM"
+
+Step 3: Allowed Contracts
+— Toggle list:
+  ✓ Venice AI API
+  ✓ DeFiLlama
+  ✓ Uniswap v3
+  ✓ Aave v3
+  ✗ Compound (toggle off)
+— "Add custom contract" input
+
+Step 4: Confirm
+— Summary of what you're granting
+— "DELEGATE will be able to:"
+  ✓ Spend up to $10 USDC/hour
+  ✓ Only on approved contracts
+  ✓ Expires automatically in 24 hours
+  ✓ You can revoke anytime
+— "Grant Permission" button (large, orange)
+  → Triggers MetaMask ERC-7715 popup
+  → MetaMask opens, user approves
+  → Success animation (green burst)
+
+---
+
+CENTER — Task Interface
+
+Top: Example tasks (chips, clickable):
+"Research top DeFi yields today"
+"Summarize my wallet this week"
+"Find best gas time and batch txs"
+"Check if my positions are at risk"
+
+Task Input (large, prominent):
+Textarea placeholder:
+"What would you like to delegate?
+ e.g. 'Research the top 3 DeFi yields 
+ on Ethereum and summarize them'"
+
+bg: #111118
+border: 1px solid #ffffff20
+border-radius: 12px
+padding: 20px
+font-size: 16px
+min-height: 120px
+focus: border-color #F6851B
+transition: border 0.2s
+
+Below textarea:
+Left: "Estimated cost: $0.05-0.15"
+      (updates as user types)
+Right: "Delegate" button
+       bg: orange gradient
+       disabled if no permission
+
+---
+
+WHEN TASK IS RUNNING:
+
+Task input hides.
+Agent Tree expands in center:
+
+AGENT TREE (the hero component):
+
+Visual representation using Framer Motion:
+
+┌─────────────────────────────────────┐
+│  DELEGATE (Orchestrator)            │
+│  ● Planning with Venice AI...       │
+│  Budget: $10.00 remaining           │
+└──────────────┬──────────────────────┘
+               │
+    ┌──────────┴──────────┐
+    │                     │
+┌───┴───┐           ┌─────┴────┐
+│ Agent │           │  Agent   │
+│   A   │           │    B     │
+│ Data  │           │  Chain   │
+│Fetcher│           │ Analyzer │
+│$1 lim │           │ $1 limit │
+│●ACTIVE│           │ ⏳WAIT   │
+└───────┘           └──────────┘
+    │                     │
+ 0.001 USDC            pending
+ DeFiLlama             RPC call
+
+Each node is a card:
+— Agent type name
+— Current status (WAITING/ACTIVE/COMPLETE/ERROR)
+— Budget limit + spent
+— Last action
+— Status color: orange=active, green=complete,
+  red=error, gray=waiting
+
+Nodes animate in with Framer spring as spawned.
+Lines draw between them as connections form.
+Status badges pulse when active.
+
+BELOW AGENT TREE:
+Live payment feed (as agents pay):
+→ Agent A paid 0.001 USDC → DeFiLlama via 1Shot
+→ Agent B paid 0.002 USDC → RPC via 1Shot
+→ Agent C paid 0.050 USDC → Venice AI via 1Shot
+Each item slides up with Framer.
+
+---
+
+WHEN TASK IS COMPLETE:
+
+Agent tree fades out.
+Result card slides up (Framer):
+
+┌─────────────────────────────────┐
+│ ✓ Task Complete                 │
+│                                 │
+│ [Result text here]              │
+│                                 │
+│ ─────────────────────────────   │
+│ Agents Used:    4               │
+│ Total Cost:     $0.053 USDC     │
+│ Duration:       8.4 seconds     │
+│ You Signed:     0 transactions  │
+│                                 │
+│ "You signed 0 transactions"     │
+│  highlighted in orange          │
+│                                 │
+│ [New Task] [View in Dashboard]  │
+└─────────────────────────────────┘
+
+---
+
+RIGHT PANEL — Agent Dashboard
+
+Header: "Agent Activity"
+Live counter: "● 3 agents active"
+
+LIVE FEED (WebSocket):
+AnimatePresence, max 20 items:
+
+Each feed item:
+┌────────────────────────────────┐
+│ 🟠 Agent A spawned             │
+│    Data Fetcher • $1 budget    │
+│    just now                    │
+├────────────────────────────────┤
+│ 💸 Payment made                │
+│    0.001 USDC → DeFiLlama     │
+│    via 1Shot • 2s ago          │
+├────────────────────────────────┤
+│ ✓  Agent A complete            │
+│    Fetched 3 yield sources     │
+│    3s ago                      │
+└────────────────────────────────┘
+
+Color coding left border:
+Orange: spawned
+Blue: payment
+Green: complete
+Red: error
+
+BUDGET OVERVIEW:
+Donut chart (small, d3 or recharts):
+Shows: spent vs remaining of current permission
+Orange = spent, Dark = remaining
+
+SIGNATURES COUNTER (prominent):
+Large display:
+"0"
+"transactions signed by you"
+"this session"
+This is the product's main claim.
+Make it unmissable.
+
+---
+
+PAGE 3: DASHBOARD (/dashboard/page.tsx)
+Protected.
+
+LAYOUT: Full width, no sidebar.
+
+HEADER ROW:
+Left: "Dashboard"
+Right: "Active Permission" status badge
+
+TOP STATS (4 cards, CounterAnimation):
+Tasks Completed | Total Agents Used |
+Total Spent (USDC) | Your Signatures (always 1)
+
+The "Your Signatures: 1" card:
+— Special styling: orange border, orange glow
+— Tooltip: "One permission. That's all you ever sign."
+
+SPENDING CHART:
+recharts AreaChart
+Daily USDC spending over last 30 days
+Orange fill, orange line
+Gradient fill from orange to transparent
+
+ACTIVE PERMISSIONS SECTION:
+Table:
+Token | Max/Period | Spent | Expires | Contracts | Action
+
+Each row:
+— Token: USDC chip
+— Max: "$10 / hour"
+— Spent: progress bar (orange fill)
+— Expires: countdown timer
+— Contracts: count chip "4 contracts"
+— Action: "Revoke" (red ghost button)
+  Confirmation modal before revoke
+
+TASK HISTORY:
+Table with search + filter:
+Columns:
+Date | Task (truncated) | Agents | Cost | 
+Duration | Signatures | Status | Actions
+
+Each row expandable:
+→ Shows full prompt
+→ Shows agent breakdown
+→ Shows all payments made
+→ Links to 1Shot transaction hashes
+
+Status badges:
+COMPLETE: green
+RUNNING: orange pulse
+FAILED: red
+
+Signatures column: 
+Always shows "0" for all tasks
+(except first permission grant = "1")
+The joke/point of the product
+
+---
+
+PAGE 4: HOW IT WORKS (/how-it-works/page.tsx)
+
+Clean explainer page.
+Deep dive into the tech.
+
+Sections:
+1. The Permission Model (ERC-7715 explained)
+2. Agent Coordination (ERC-7710 redelegation)
+3. Autonomous Payments (x402 + 1Shot)
+4. Privacy (Venice AI)
+5. Security Model (what DELEGATE can/can't do)
+6. Code Examples (syntax highlighted)
+
+Each section with:
+— Clear headline
+— 2-3 paragraph explanation
+— Visual diagram or code block
+— ScrollTrigger reveal
+
+---
+
+PAGE 5: DOCS (/docs/page.tsx)
+
+Developer docs for building on DELEGATE.
+
+Sections:
+— Quick Start
+— Permission API
+— Agent API  
+— WebSocket Events
+— x402 Integration
+— Smart Contract Reference
+— Code Examples
+
+Sidebar navigation (sticky):
+All sections listed, highlights current.
+
+---
+
+COMPONENTS DEEP DIVE
+
+components/animations/AgentNetwork.tsx:
+THE hero animation. Most important component.
+
+Canvas-based visualization:
+— Central DELEGATE node (large, orange)
+  Pulses with subtle glow
+  Label: "DELEGATE"
+— 4 sub-agent nodes (smaller, purple)
+  Arranged in arc below center
+  Labels: Data, Chain, Venice, Exec
+— 8 API endpoint nodes (tiny, muted)
+  Arranged further out
+  Labels: DeFiLlama, RPC, Venice, DEX, etc.
+
+Connections (lines):
+— Center → sub-agents: orange lines
+— Sub-agents → APIs: purple lines
+— Lines animate: dashes flowing direction
+  of data flow
+— Active connections pulse brighter
+
+Animation states:
+IDLE: nodes pulse gently, no data flow
+PLANNING: center node brightens
+EXECUTING: lines animate, nodes light up
+COMPLETE: all nodes green briefly, then return
+
+Uses GSAP for all animations.
+requestAnimationFrame for canvas.
+Responds to WebSocket events when running.
+
+components/app/AgentTree.tsx:
+The task-running visualization.
+DOM-based (not canvas) for click interactions.
+
+Central orchestrator card at top.
+Sub-agent cards arranged below.
+SVG lines connecting them.
+GSAP DrawSVG animates lines.
+Framer Motion for node spawn animations.
+
+Each AgentNode.tsx:
+Props: type, status, budget, spent, lastAction
+Status-based styling (colors, animations)
+Pulsing indicator when active.
+
+components/app/BudgetMeter.tsx:
+Orange progress bar.
+Shows spent / total.
+Animates smoothly as agents spend.
+Turns red at < 20%.
+Framer Motion width animation.
+
+components/app/LiveFeed.tsx:
+WebSocket connection.
+AnimatePresence for items.
+Max 20 items.
+Auto-scroll to latest.
+Color-coded by event type.
+
+components/ui/AddressChip.tsx:
+Displays Ethereum address.
+Truncated: 0x1234...5678
+Copy button on right.
+JetBrains Mono font.
+Subtle bg, rounded.
+
+---
+
+ENVIRONMENT VARIABLES:
+
+.env.local:
+# Ethereum
+NEXT_PUBLIC_CHAIN_ID=1
+NEXT_PUBLIC_DELEGATE_CORE_ADDRESS=
+NEXT_PUBLIC_SUB_AGENT_REGISTRY_ADDRESS=
+NEXT_PUBLIC_X402_VERIFIER_ADDRESS=
+
+# MetaMask Smart Accounts Kit
+NEXT_PUBLIC_METAMASK_PROJECT_ID=
+
+# Venice AI
+VENICE_API_KEY=
+
+# 1Shot Relayer
+ONESHOT_API_KEY=
+ONESHOT_RELAYER_URL=
+
+# Database
+DATABASE_URL=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Agent
+NEXT_PUBLIC_WS_URL=ws://localhost:3001
+AGENT_PRIVATE_KEY=
+
+# Auth
+NEXTAUTH_SECRET=
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
+
+---
+
+DEMO MODE (make it perfect for judges):
+
+When judge visits /app without a real wallet:
+
+Show prominent "Try Demo" button.
+Demo mode does NOT require MetaMask.
+Shows a simulated permission already granted.
+
+Demo runs this sequence automatically:
+00:00 — Permission shown as granted
+        $10 USDC/hour, expires in 23h 59m
+
+00:05 — Pre-filled task appears:
+        "Research the top 3 DeFi yields on 
+         Ethereum and move $50 to the best one"
+
+00:08 — "Delegate" button pulses
+        User clicks (or auto-clicks in demo)
+
+00:10 — Planning phase:
+        Center shows "Planning with Venice AI..."
+        TypewriterText: "Breaking task into 4 subtasks"
+
+00:14 — Agent A spawns (Framer spring):
+        "Data Fetcher | $1 limit | ● ACTIVE"
+        Live feed: "Agent A spawned"
+
+00:16 — Payment made:
+        "0.001 USDC → DeFiLlama via 1Shot"
+        Budget meter ticks down slightly
+
+00:18 — Agent B spawns:
+        "Chain Analyzer | $1 limit | ● ACTIVE"
+
+00:20 — Payment made:
+        "0.002 USDC → Ethereum RPC via 1Shot"
+
+00:22 — Agent C spawns:
+        "Venice AI | $2 limit | ● ACTIVE"
+
+00:25 — Payment made:
+        "0.050 USDC → Venice AI via 1Shot"
+
+00:28 — Agent D spawns:
+        "Executor | $5 limit | ⏳ WAITING"
+
+00:30 — Agents A, B, C show COMPLETE (green)
+
+00:32 — Agent D activates:
+        "0.003 USDC → Uniswap v3 via 1Shot"
+
+00:35 — Task COMPLETE:
+        Result card slides up:
+        "Found top yields: Compound (5.8% APY),
+         Aave (4.2% APY), Curve (3.9% APY).
+         Moved $50 USDC to Compound (5.8% APY).
+         Transaction confirmed."
+        
+        Stats:
+        Agents: 4
+        Cost: $0.056 USDC
+        Duration: 35 seconds
+        You Signed: 0 transactions
+
+00:38 — "You Signed: 0 transactions" 
+         pulses orange 3 times
+         This is the hero moment
+
+Signatures counter in right panel: "0"
+throughout entire demo.
+
+Loop after 10 seconds.
+
+---
+
+PRODUCTION REQUIREMENTS:
+— Full TypeScript strict mode
+— Zod validation on all API inputs
+— Error boundaries on all pages
+— Loading skeletons everywhere
+— Empty states designed
+— Mobile responsive (375px minimum)
+— SEO metadata on all public pages
+— No console errors or warnings
+— All GSAP in useEffect with cleanup
+— All Framer variants outside components
+— WebSocket reconnection logic
+— Optimistic UI on all mutations
+— Toast notifications (react-hot-toast)
+— Keyboard navigation on all modals
+
+---
+
+BUILD ORDER — FOLLOW EXACTLY:
+
+Week 1 (Days 1-5):
+1. Database schema + Supabase setup
+2. Smart contracts + deploy to Sepolia
+3. GSAP + Framer animation components
+   (ParticleField, AgentNetwork, TextSplit)
+4. UI components (Button, Card, Badge, Modal)
+5. Landing page Hero section
+6. Rest of landing page sections
+7. Landing page mobile responsive
+
+Week 2 (Days 6-10):
+8. wagmi + RainbowKit + SIWE auth
+9. Venice AI integration + task planner
+10. 1Shot relayer integration
+11. x402 payment middleware
+12. Agent orchestrator + WebSocket server
+13. Permission grant API + MetaMask ERC-7715
+14. Task execution API
+
+Week 3 (Days 11-14):
+15. Main app page (left panel)
+16. Main app page (center - task input)
+17. Main app page (right panel - live feed)
+18. AgentTree component (the hero component)
+19. Permission modal (4-step wizard)
+20. Demo mode (agent/demo.ts)
+21. Dashboard page
+22. How It Works page
+23. Docs page
+24. Full end-to-end test
+25. Polish pass (animations, states, mobile)
+26. Record demo video
+
+---
+
+WRITE COMPLETE PRODUCTION CODE FOR
+EVERY SINGLE FILE LISTED ABOVE.
+NO PLACEHOLDERS.
+NO TODOS.
+NO "IMPLEMENT THIS LATER".
+FULL IMPLEMENTATION ONLY.
+
+START WITH STEP 1:
+Database schema + prisma/schema.prisma
+Then confirm and continue automatically
+through every step.
