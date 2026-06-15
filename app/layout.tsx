@@ -34,6 +34,13 @@ export const metadata: Metadata = {
     'Web3 AI',
   ],
   authors: [{ name: 'DELEGATE' }],
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    apple: '/logo.png',
+  },
   openGraph: {
     title: 'DELEGATE — One permission. Infinite agents.',
     description:
@@ -41,6 +48,7 @@ export const metadata: Metadata = {
     url: 'https://delegate.app',
     siteName: 'DELEGATE',
     type: 'website',
+    images: [{ url: '/og-image.png', width: 1024, height: 1024, alt: 'DelegateX' }],
   },
   twitter: {
     card: 'summary_large_image',

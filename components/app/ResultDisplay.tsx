@@ -2,13 +2,14 @@
 
 import { motion } from 'framer-motion';
 import type { Task } from '@/types';
-import { formatUSDC, formatDuration } from '@/lib/utils';
+import { formatUSDC, formatDuration, truncateAddress } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 
 export interface ResultDisplayProps {
   task: Task;
   onNewTask: () => void;
   onViewDashboard: () => void;
+  oneShotPayments?: { recipient: string; amount: number; txHash: string }[];
 }
 
 const resultVariants = {
@@ -21,7 +22,12 @@ const resultVariants = {
   },
 };
 
-export function ResultDisplay({ task, onNewTask, onViewDashboard }: ResultDisplayProps) {
+export function ResultDisplay({
+  task,
+  onNewTask,
+  onViewDashboard,
+  oneShotPayments = [],
+}: ResultDisplayProps) {
   return (
     <motion.div
       variants={resultVariants}
@@ -71,6 +77,27 @@ export function ResultDisplay({ task, onNewTask, onViewDashboard }: ResultDispla
           <SignatureHighlight value={task.signatures} />
         </div>
       </div>
+
+      {oneShotPayments.length > 0 && (
+        <div className="mb-6 border-t border-white/5 pt-4">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">
+            Relayed via 1Shot API
+          </div>
+          <div className="space-y-1.5">
+            {oneShotPayments.map((p, i) => (
+              <div
+                key={i}
+                className="mono flex items-center justify-between rounded border border-info/10 bg-info/5 px-2 py-1.5 text-[11px]"
+              >
+                <span className="text-white/70">
+                  {formatUSDC(p.amount)} → {p.recipient}
+                </span>
+                <span className="text-info">{truncateAddress(p.txHash, 6)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-3">

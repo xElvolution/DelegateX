@@ -2,11 +2,12 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import type { FeedEvent } from '@/types';
-import { cn, formatRelativeTime, formatUSDC } from '@/lib/utils';
+import { cn, formatRelativeTime, formatUSDC, truncateAddress } from '@/lib/utils';
 import { useEffect, useRef } from 'react';
 
 const borderColors: Record<string, string> = {
   AGENT_SPAWNED: 'border-l-primary',
+  ONESHOT_RELAY: 'border-l-secondary',
   PAYMENT_MADE: 'border-l-info',
   SUBTASK_COMPLETE: 'border-l-success',
   TASK_COMPLETE: 'border-l-success',
@@ -16,6 +17,7 @@ const borderColors: Record<string, string> = {
 
 const icons: Record<string, string> = {
   AGENT_SPAWNED: '●',
+  ONESHOT_RELAY: '⚡',
   PAYMENT_MADE: '→',
   SUBTASK_COMPLETE: '✓',
   TASK_COMPLETE: '✓',
@@ -25,6 +27,7 @@ const icons: Record<string, string> = {
 
 const iconColors: Record<string, string> = {
   AGENT_SPAWNED: 'text-primary',
+  ONESHOT_RELAY: 'text-secondary',
   PAYMENT_MADE: 'text-info',
   SUBTASK_COMPLETE: 'text-success',
   TASK_COMPLETE: 'text-success',
@@ -69,9 +72,14 @@ export function FeedItem({ event }: FeedItemProps) {
           {event.detail && (
             <div className="mt-0.5 truncate text-[10px] text-muted">{event.detail}</div>
           )}
-          {event.amount != null && (
+          {event.amount != null && event.type === 'PAYMENT_MADE' && (
             <div className="mono mt-0.5 text-[10px] text-info">
               {formatUSDC(event.amount)} via 1Shot
+            </div>
+          )}
+          {event.oneShotTx && (
+            <div className="mono mt-0.5 text-[10px] text-muted">
+              1Shot tx: {truncateAddress(event.oneShotTx, 6)}
             </div>
           )}
         </div>

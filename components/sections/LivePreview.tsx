@@ -82,9 +82,9 @@ export function LivePreview() {
                 <div className="space-y-1.5">
                   {[
                     { c: 'border-l-primary', t: 'Agent A spawned' },
-                    { c: 'border-l-info', t: '$0.001 → DeFiLlama' },
+                    { c: 'border-l-secondary', t: '1Shot relayer executing payment' },
+                    { c: 'border-l-info', t: '$0.001 → DeFiLlama via 1Shot' },
                     { c: 'border-l-success', t: 'Agent A complete' },
-                    { c: 'border-l-primary', t: 'Agent B spawned' },
                   ].map((item, i) => (
                     <div
                       key={i}

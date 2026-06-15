@@ -12,7 +12,7 @@ import { BudgetMeter } from '@/components/app/BudgetMeter';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useDemo } from '@/hooks/useDemo';
-import { formatUSDC } from '@/lib/utils';
+import { formatUSDC, truncateAddress } from '@/lib/utils';
 import type { DemoPhase } from '@/agent/demo';
 
 export default function AppPage() {
@@ -54,6 +54,17 @@ export default function AppPage() {
         recipient: e.recipient ?? 'Unknown',
         amount: e.amount!,
         timeAgo: 'just now',
+        oneShotTx: e.oneShotTx,
+      }));
+  }, [state.events]);
+
+  const oneShotPayments = useMemo(() => {
+    return state.events
+      .filter((e) => e.type === 'PAYMENT_MADE' && e.oneShotTx && e.amount)
+      .map((e) => ({
+        recipient: e.recipient ?? 'Unknown',
+        amount: e.amount!,
+        txHash: e.oneShotTx!,
       }));
   }, [state.events]);
 
@@ -73,7 +84,7 @@ export default function AppPage() {
       {/* Demo banner */}
       <div className="border-b border-primary/10 bg-primary/[0.03] px-4 py-2 text-center">
         <span className="text-xs text-muted">
-          Demo Mode — No wallet required.{' '}
+          Demo Mode — Agents pay via 1Shot relayer API. No wallet required.{' '}
           {!running && isIdle && (
             <button
               onClick={start}
@@ -135,7 +146,7 @@ export default function AppPage() {
               {state.events.filter((e) => e.type === 'PAYMENT_MADE').length > 0 && (
                 <div className="mx-auto mt-6 w-full max-w-md">
                   <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">
-                    Live Payments
+                    Live Payments · 1Shot Relayer
                   </div>
                   <div className="space-y-1">
                     {state.events
@@ -144,14 +155,19 @@ export default function AppPage() {
                       .map((e) => (
                         <div
                           key={e.id}
-                          className="mono flex items-center justify-between rounded border border-info/10 bg-info/5 px-2 py-1 text-[11px]"
+                          className="rounded border border-info/10 bg-info/5 px-2 py-1 text-[11px]"
                         >
-                          <span className="text-info">
-                            → {e.recipient}
-                          </span>
-                          <span className="text-white/70">
-                            {formatUSDC(e.amount ?? 0)} via 1Shot
-                          </span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-info">→ {e.recipient}</span>
+                            <span className="mono text-white/70">
+                              {formatUSDC(e.amount ?? 0)} via 1Shot
+                            </span>
+                          </div>
+                          {e.oneShotTx && (
+                            <div className="mono mt-0.5 text-[10px] text-muted">
+                              {truncateAddress(e.oneShotTx, 6)}
+                            </div>
+                          )}
                         </div>
                       ))}
                   </div>
@@ -167,6 +183,7 @@ export default function AppPage() {
                 task={state.task}
                 onNewTask={handleNewTask}
                 onViewDashboard={() => router.push('/dashboard')}
+                oneShotPayments={oneShotPayments}
               />
             </div>
           )}

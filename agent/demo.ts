@@ -67,12 +67,102 @@ function makeEvent(
   };
 }
 
+function makeDemoTxHash(): string {
+  const hex = Array.from({ length: 64 }, () =>
+    Math.floor(Math.random() * 16).toString(16)
+  ).join('');
+  return `0x${hex}`;
+}
+
+interface DemoPayment {
+  agentId: string;
+  recipient: string;
+  amount: number;
+  txHash: string;
+  lastAction: string;
+}
+
+function emitRelay(
+  payment: DemoPayment,
+  taskId: string | undefined,
+  emit: (event: FeedEvent) => void
+) {
+  emit(
+    makeEvent('ONESHOT_RELAY', '1Shot relayer executing payment', {
+      taskId,
+      agentId: payment.agentId,
+      recipient: payment.recipient,
+      amount: payment.amount,
+      detail: 'POST api.1shot.io/relay · ERC-7710 delegation verified',
+    })
+  );
+}
+
+function confirmPayment(
+  payment: DemoPayment,
+  taskId: string | undefined,
+  emit: (event: FeedEvent) => void,
+  agents: SubAgent[]
+) {
+  emit(
+    makeEvent('PAYMENT_MADE', `${payment.amount.toFixed(4)} USDC → ${payment.recipient}`, {
+      taskId,
+      agentId: payment.agentId,
+      amount: payment.amount,
+      recipient: payment.recipient,
+      oneShotTx: payment.txHash,
+      detail: `Relayed on-chain · ${payment.txHash.slice(0, 10)}…${payment.txHash.slice(-8)}`,
+    })
+  );
+  const updated = agents.map((a) =>
+    a.id === payment.agentId
+      ? { ...a, spent: a.spent + payment.amount, lastAction: payment.lastAction }
+      : a
+  );
+  const totalCost = updated.reduce((s, a) => s + a.spent, 0);
+  return { agents: updated, totalCost };
+}
+
+function makePayment(
+  agentId: string,
+  recipient: string,
+  amount: number,
+  lastAction: string
+): DemoPayment {
+  return { agentId, recipient, amount, txHash: makeDemoTxHash(), lastAction };
+}
+
 export function createDemoSteps(): DemoStep[] {
   const orchestratorId = uid();
   const agentA = makeAgent('DATA_FETCHER', 'Data Fetcher', 1, orchestratorId);
   const agentB = makeAgent('CHAIN_ANALYZER', 'Chain Analyzer', 1, orchestratorId);
   const agentC = makeAgent('AI_INFERENCE', 'Venice AI', 2, orchestratorId);
   const agentD = makeAgent('EXECUTOR', 'Executor', 5, orchestratorId);
+
+  const payA = makePayment(
+    agentA.id,
+    'DeFiLlama API',
+    0.001 + Math.random() * 0.001,
+    'Fetching DeFi yield data'
+  );
+  const payB = makePayment(
+    agentB.id,
+    'Ethereum RPC',
+    0.002 + Math.random() * 0.001,
+    'Reading on-chain rates'
+  );
+  const payC = makePayment(
+    agentC.id,
+    'Venice AI',
+    0.05 + Math.random() * 0.01,
+    'Synthesizing results with Llama 3.3'
+  );
+  const payD = makePayment(
+    agentD.id,
+    'Uniswap v3',
+    0.003 + Math.random() * 0.001,
+    'Executing swap via Uniswap'
+  );
 
   const steps: DemoStep[] = [
     // 0: Start planning
@@ -127,31 +217,31 @@ export function createDemoSteps(): DemoStep[] {
         };
       },
     },
-    // 3: Agent A pays DeFiLlama
+    // 3: Agent A — 1Shot relay
     {
       delay: 2000,
       action: (state, emit) => {
-        const amount = 0.001 + Math.random() * 0.001;
-        emit(
-          makeEvent('PAYMENT_MADE', `${amount.toFixed(4)} USDC → DeFiLlama`, {
-            taskId: state.task?.id,
-            agentId: agentA.id,
-            amount,
-            recipient: 'DeFiLlama API',
-            oneShotTx: `0x${uid()}${uid()}`,
-          })
+        emitRelay(payA, state.task?.id, emit);
+        return {};
+      },
+    },
+    // 4: Agent A — payment confirmed
+    {
+      delay: 1200,
+      action: (state, emit) => {
+        const { agents, totalCost } = confirmPayment(
+          payA,
+          state.task?.id,
+          emit,
+          state.agents
         );
-        const agents = state.agents.map((a) =>
-          a.id === agentA.id ? { ...a, spent: a.spent + amount, lastAction: 'Fetching DeFi yield data' } : a
-        );
-        const totalCost = agents.reduce((s, a) => s + a.spent, 0);
         return {
           agents,
           task: state.task ? { ...state.task, agents, totalCost } : null,
         };
       },
     },
-    // 4: Spawn Agent B
+    // 5: Spawn Agent B
     {
       delay: 2000,
       action: (state, emit) => {
@@ -166,28 +256,28 @@ export function createDemoSteps(): DemoStep[] {
         return { agents: [...state.agents, b] };
       },
     },
-    // 5: Agent B pays RPC
+    // 6: Agent B — 1Shot relay
     {
       delay: 2000,
       action: (state, emit) => {
-        const amount = 0.002 + Math.random() * 0.001;
-        emit(
-          makeEvent('PAYMENT_MADE', `${amount.toFixed(4)} USDC → Ethereum RPC`, {
-            taskId: state.task?.id,
-            agentId: agentB.id,
-            amount,
-            recipient: 'Ethereum RPC',
-            oneShotTx: `0x${uid()}${uid()}`,
-          })
+        emitRelay(payB, state.task?.id, emit);
+        return {};
+      },
+    },
+    // 7: Agent B — payment confirmed
+    {
+      delay: 1200,
+      action: (state, emit) => {
+        const { agents, totalCost } = confirmPayment(
+          payB,
+          state.task?.id,
+          emit,
+          state.agents
         );
-        const agents = state.agents.map((a) =>
-          a.id === agentB.id ? { ...a, spent: a.spent + amount, lastAction: 'Reading on-chain rates' } : a
-        );
-        const totalCost = agents.reduce((s, a) => s + a.spent, 0);
         return { agents, task: state.task ? { ...state.task, agents, totalCost } : null };
       },
     },
-    // 6: Spawn Agent C
+    // 8: Spawn Agent C
     {
       delay: 2000,
       action: (state, emit) => {
@@ -202,28 +292,28 @@ export function createDemoSteps(): DemoStep[] {
         return { agents: [...state.agents, c] };
       },
     },
-    // 7: Agent C pays Venice
+    // 9: Agent C — 1Shot relay
     {
       delay: 3000,
       action: (state, emit) => {
-        const amount = 0.05 + Math.random() * 0.01;
-        emit(
-          makeEvent('PAYMENT_MADE', `${amount.toFixed(4)} USDC → Venice AI`, {
-            taskId: state.task?.id,
-            agentId: agentC.id,
-            amount,
-            recipient: 'Venice AI',
-            oneShotTx: `0x${uid()}${uid()}`,
-          })
+        emitRelay(payC, state.task?.id, emit);
+        return {};
+      },
+    },
+    // 10: Agent C — payment confirmed
+    {
+      delay: 1200,
+      action: (state, emit) => {
+        const { agents, totalCost } = confirmPayment(
+          payC,
+          state.task?.id,
+          emit,
+          state.agents
         );
-        const agents = state.agents.map((a) =>
-          a.id === agentC.id ? { ...a, spent: a.spent + amount, lastAction: 'Synthesizing results with Llama 3.3' } : a
-        );
-        const totalCost = agents.reduce((s, a) => s + a.spent, 0);
         return { agents, task: state.task ? { ...state.task, agents, totalCost } : null };
       },
     },
-    // 8: Spawn Agent D (waiting)
+    // 11: Spawn Agent D (waiting)
     {
       delay: 2000,
       action: (state, emit) => {
@@ -238,7 +328,7 @@ export function createDemoSteps(): DemoStep[] {
         return { agents: [...state.agents, d] };
       },
     },
-    // 9: Agents A, B, C complete
+    // 12: Agents A, B, C complete
     {
       delay: 2000,
       action: (state, emit) => {
@@ -254,30 +344,34 @@ export function createDemoSteps(): DemoStep[] {
         return { agents };
       },
     },
-    // 10: Agent D activates + pays
+    // 13: Agent D — 1Shot relay
     {
       delay: 2000,
       action: (state, emit) => {
-        const amount = 0.003 + Math.random() * 0.001;
-        emit(
-          makeEvent('PAYMENT_MADE', `${amount.toFixed(4)} USDC → Uniswap v3`, {
-            taskId: state.task?.id,
-            agentId: agentD.id,
-            amount,
-            recipient: 'Uniswap v3',
-            oneShotTx: `0x${uid()}${uid()}`,
-          })
-        );
-        const agents = state.agents.map((a) =>
-          a.id === agentD.id
-            ? { ...a, status: 'ACTIVE' as const, spent: a.spent + amount, lastAction: 'Executing swap via Uniswap' }
-            : a
-        );
-        const totalCost = agents.reduce((s, a) => s + a.spent, 0);
-        return { agents, task: state.task ? { ...state.task, agents, totalCost } : null };
+        emitRelay(payD, state.task?.id, emit);
+        return {};
       },
     },
-    // 11: All done
+    // 14: Agent D — payment confirmed
+    {
+      delay: 1200,
+      action: (state, emit) => {
+        const { agents, totalCost } = confirmPayment(
+          payD,
+          state.task?.id,
+          emit,
+          state.agents
+        );
+        const activated = agents.map((a) =>
+          a.id === agentD.id ? { ...a, status: 'ACTIVE' as const } : a
+        );
+        return {
+          agents: activated,
+          task: state.task ? { ...state.task, agents: activated, totalCost } : null,
+        };
+      },
+    },
+    // 15: All done
     {
       delay: 3000,
       action: (state, emit) => {

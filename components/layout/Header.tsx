@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -21,9 +22,14 @@ export function Header() {
       <div className="container-app flex h-14 items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dark text-xs font-black text-white">
-            D
-          </span>
+          <Image
+            src="/logo.png"
+            alt="DelegateX"
+            width={32}
+            height={32}
+            className="rounded-lg"
+            priority
+          />
           <span className="text-sm font-bold tracking-tightest text-white">
             DELEGATE
           </span>

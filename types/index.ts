@@ -63,6 +63,7 @@ export interface Task {
 
 export type FeedEventType =
   | 'AGENT_SPAWNED'
+  | 'ONESHOT_RELAY'
   | 'PAYMENT_MADE'
   | 'SUBTASK_COMPLETE'
   | 'TASK_COMPLETE'

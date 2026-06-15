@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { Permission } from '@/types';
-import { cn, formatUSDC, formatCountdown } from '@/lib/utils';
+import { cn, formatUSDC, formatCountdown, truncateAddress } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Progress } from '@/components/ui/Progress';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,12 @@ export interface PermissionCardProps {
   permission: Permission | null;
   onGrant: () => void;
   onRevoke: () => void;
-  recentPayments?: { recipient: string; amount: number; timeAgo: string }[];
+  recentPayments?: {
+    recipient: string;
+    amount: number;
+    timeAgo: string;
+    oneShotTx?: string;
+  }[];
 }
 
 export function PermissionCard({
@@ -128,9 +133,16 @@ export function PermissionCard({
           </div>
           <div className="space-y-1">
             {recentPayments.map((p, i) => (
-              <div key={i} className="flex items-baseline justify-between text-[11px]">
-                <span className="text-muted">→ {p.recipient}</span>
-                <span className="mono text-white/70">-{formatUSDC(p.amount)}</span>
+              <div key={i} className="text-[11px]">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-muted">→ {p.recipient}</span>
+                  <span className="mono text-white/70">-{formatUSDC(p.amount)}</span>
+                </div>
+                {p.oneShotTx && (
+                  <div className="mono mt-0.5 text-[10px] text-info/70">
+                    via 1Shot · {truncateAddress(p.oneShotTx, 4)}
+                  </div>
+                )}
               </div>
             ))}
           </div>
