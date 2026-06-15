@@ -71,7 +71,7 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="relative py-24">
+    <section id="how-it-works" className="scroll-mt-16 relative py-24">
       <div className="container-app">
         <ScrollReveal>
           <h2 className="mb-4 text-center text-3xl font-bold tracking-tighter md:text-4xl">

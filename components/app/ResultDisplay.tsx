@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import type { Task } from '@/types';
 import { formatUSDC, formatDuration, truncateAddress } from '@/lib/utils';
+import { txUrl } from '@/lib/contracts';
 import { Button } from '@/components/ui/Button';
 
 export interface ResultDisplayProps {
@@ -81,19 +82,22 @@ export function ResultDisplay({
       {oneShotPayments.length > 0 && (
         <div className="mb-6 border-t border-white/5 pt-4">
           <div className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted">
-            Relayed via 1Shot API
+            On-chain payments (Base Sepolia)
           </div>
           <div className="space-y-1.5">
             {oneShotPayments.map((p, i) => (
-              <div
+              <a
                 key={i}
-                className="mono flex items-center justify-between rounded border border-info/10 bg-info/5 px-2 py-1.5 text-[11px]"
+                href={txUrl(p.txHash)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono flex items-center justify-between rounded border border-info/10 bg-info/5 px-2 py-1.5 text-[11px] hover:border-info/30"
               >
                 <span className="text-white/70">
-                  {formatUSDC(p.amount)} → {p.recipient}
+                  {formatUSDC(p.amount)} → {truncateAddress(p.recipient, 4)}
                 </span>
-                <span className="text-info">{truncateAddress(p.txHash, 6)}</span>
-              </div>
+                <span className="text-info">{truncateAddress(p.txHash, 6)} ↗</span>
+              </a>
             ))}
           </div>
         </div>

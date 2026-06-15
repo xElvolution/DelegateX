@@ -1,25 +1,42 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { CounterAnimation } from '@/components/animations/CounterAnimation';
 import { cn } from '@/lib/utils';
-
-const STATS = [
-  { label: 'Tasks Completed', value: 47, prefix: '', special: false },
-  { label: 'Total Agents Used', value: 188, prefix: '', special: false },
-  { label: 'Total Spent (USDC)', value: 4.73, prefix: '$', special: false },
-  { label: 'Your Signatures', value: 1, prefix: '', special: true },
-];
+import { useWallet } from '@/hooks/useWallet';
 
 export function DashboardStats() {
+  const { address } = useWallet();
+  const [stats, setStats] = useState({
+    tasksCompleted: 0,
+    totalAgents: 0,
+    totalSpent: 0,
+    signatures: 0,
+  });
+
+  useEffect(() => {
+    if (!address) return;
+    fetch(`/api/tasks/history?address=${address}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.stats) setStats(d.stats);
+      })
+      .catch(() => {});
+  }, [address]);
+
+  const items = [
+    { label: 'Tasks Completed', value: stats.tasksCompleted, prefix: '', special: false },
+    { label: 'Total Agents Used', value: stats.totalAgents, prefix: '', special: false },
+    { label: 'Total Spent (USDC)', value: stats.totalSpent, prefix: '$', special: false },
+    { label: 'Your Signatures', value: stats.signatures, prefix: '', special: true },
+  ];
+
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {STATS.map((s) => (
+      {items.map((s) => (
         <div
           key={s.label}
-          className={cn(
-            'card-surface p-5',
-            s.special && 'border-primary/30 shadow-glow'
-          )}
+          className={cn('card-surface p-5', s.special && 'border-primary/30 shadow-glow')}
         >
           <div className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted">
             {s.label}

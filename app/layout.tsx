@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
+import { Web3Provider } from '@/components/providers/Web3Provider';
 import './globals.css';
 
 const inter = Inter({
@@ -67,7 +68,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable}`}>
       <body className="min-h-screen bg-bg text-white antialiased">
-        {children}
+        <Web3Provider>
+          {children}
+        </Web3Provider>
         <Toaster
           position="bottom-right"
           toastOptions={{

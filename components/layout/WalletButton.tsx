@@ -1,19 +1,36 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AddressChip } from '@/components/ui/AddressChip';
-
-const DEMO_ADDR = '0x1234567890abcdef1234567890abcdef12345678';
+import { useWallet } from '@/hooks/useWallet';
+import { isEmbeddedWalletsActive } from '@/components/providers/Web3Provider';
+import { EmbeddedWalletButton } from './EmbeddedWalletButton';
 
 export function WalletButton() {
-  const [connected, setConnected] = useState(false);
+  // Path A: MetaMask Embedded Wallets unified modal (social + MetaMask).
+  if (isEmbeddedWalletsActive()) {
+    return <EmbeddedWalletButton />;
+  }
+  // Path B: classic injected-MetaMask flow.
+  return <InjectedWalletButton />;
+}
 
-  if (connected) {
+function InjectedWalletButton() {
+  const {
+    address,
+    isConnected,
+    isConnecting,
+    authenticated,
+    authLoading,
+    connectMetaMask,
+    signOut,
+  } = useWallet();
+
+  if (isConnected && address && authenticated) {
     return (
       <div className="flex items-center gap-2">
-        <AddressChip address={DEMO_ADDR} chars={4} />
-        <Button variant="ghost" size="sm" onClick={() => setConnected(false)}>
+        <AddressChip address={address} chars={4} />
+        <Button variant="ghost" size="sm" onClick={() => void signOut()}>
           Disconnect
         </Button>
       </div>
@@ -21,8 +38,13 @@ export function WalletButton() {
   }
 
   return (
-    <Button variant="primary" size="sm" onClick={() => setConnected(true)}>
-      Connect Wallet
+    <Button
+      variant="primary"
+      size="sm"
+      loading={isConnecting || authLoading}
+      onClick={() => void connectMetaMask()}
+    >
+      {isConnected && !authenticated ? 'Sign In' : 'Connect MetaMask'}
     </Button>
   );
 }

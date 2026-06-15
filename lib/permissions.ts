@@ -1,13 +1,19 @@
 // Permission helpers
 import type { Permission, AllowedContract } from '@/types';
+import { CONTRACTS } from '@/lib/contracts';
 
-export const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+// The spendable test token (deployed MockUSDC on Base Sepolia). Falls back to a
+// zero address until contracts are deployed and env is filled.
+export const USDC_ADDRESS =
+  process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS ||
+  '0x0000000000000000000000000000000000000000';
 
+// Real, deployed contracts an agent is allowed to interact with. Addresses come
+// from the deployed stack so the on-chain `allowedContracts` array is valid.
 export const DEFAULT_CONTRACTS: AllowedContract[] = [
-  { name: 'Venice AI API', address: '0xVenice', enabled: true },
-  { name: 'DeFiLlama', address: '0xDeFiLlama', enabled: true },
-  { name: 'Uniswap v3', address: '0xUniswap', enabled: true },
-  { name: 'Aave v3', address: '0xAave', enabled: true },
+  { name: 'X402 Verifier (payments)', address: CONTRACTS.x402Verifier, enabled: true },
+  { name: 'MockUSDC (token)', address: CONTRACTS.mockUsdc, enabled: true },
+  { name: 'SubAgent Registry', address: CONTRACTS.subAgentRegistry, enabled: true },
 ];
 
 export function isPermissionActive(p: Permission): boolean {

@@ -3,66 +3,49 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { WalletButton } from './WalletButton';
-import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 
 const NAV = [
-  { label: 'App', href: '/app' },
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'How It Works', href: '/how-it-works' },
-  { label: 'Docs', href: '/docs' },
+  { label: 'How It Works', href: '#how-it-works', anchor: true },
+  { label: 'Tech', href: '#tech', anchor: false },
 ] as const;
+
+function scrollTo(id: string) {
+  document.getElementById(id.replace('#', ''))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 export function Header() {
   const path = usePathname();
+  if (path !== '/') return null;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/5 glass">
       <div className="container-app flex h-14 items-center justify-between">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/logo.png"
-            alt="DelegateX"
-            width={32}
-            height={32}
-            className="rounded-lg"
-            priority
-          />
-          <span className="text-sm font-bold tracking-tightest text-white">
-            DELEGATE
-          </span>
+          <Image src="/logo.png" alt="DelegateX" width={32} height={32} className="rounded-lg" priority />
+          <span className="text-sm font-bold tracking-tightest text-white">DELEGATE</span>
         </Link>
 
-        {/* Nav */}
         <nav className="hidden items-center gap-1 md:flex">
-          {NAV.map((item) => {
-            const active = path === item.href || path.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-sm transition-colors',
-                  active
-                    ? 'bg-white/5 font-medium text-white'
-                    : 'text-muted hover:text-white'
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
+          {NAV.map((item) => (
+            <button
+              key={item.href}
+              type="button"
+              onClick={() => scrollTo(item.href)}
+              className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:bg-white/5 hover:text-white"
+            >
+              {item.label}
+            </button>
+          ))}
         </nav>
 
-        {/* Right */}
         <div className="flex items-center gap-3">
-          {path.startsWith('/app') && (
-            <Badge tone="orange" dot pulse>
-              DEMO MODE
-            </Badge>
-          )}
+          <Link href="/app" className="hidden sm:block">
+            <Button variant="primary" size="sm">
+              Open App
+            </Button>
+          </Link>
           <WalletButton />
         </div>
       </div>

@@ -1,8 +1,6 @@
 export {
-  relayTransaction,
-  getRelayStatus,
-  type DelegationConfig,
-  type Call,
+  executeMethod,
+  oneShotTransfer,
+  isOneShotConfigured,
   type RelayResult,
-  type RelayStatus,
 } from '@/lib/oneshot';

@@ -1,53 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/Badge';
-import { cn, formatUSDC, formatDuration } from '@/lib/utils';
+import { formatUSDC, formatDuration } from '@/lib/utils';
 import type { TaskHistoryEntry } from '@/types';
-
-const MOCK_HISTORY: TaskHistoryEntry[] = [
-  {
-    id: '1',
-    date: Date.now() - 3600_000,
-    prompt: 'Research the top 3 DeFi yields on Ethereum and move $50 to the best one',
-    agentCount: 4,
-    cost: 0.056,
-    duration: 35_000,
-    signatures: 0,
-    status: 'COMPLETE',
-  },
-  {
-    id: '2',
-    date: Date.now() - 7200_000,
-    prompt: 'Check if my Aave position is at liquidation risk',
-    agentCount: 2,
-    cost: 0.012,
-    duration: 8_000,
-    signatures: 0,
-    status: 'COMPLETE',
-  },
-  {
-    id: '3',
-    date: Date.now() - 10800_000,
-    prompt: 'Find best gas window and batch my pending transactions',
-    agentCount: 3,
-    cost: 0.024,
-    duration: 22_000,
-    signatures: 0,
-    status: 'COMPLETE',
-  },
-  {
-    id: '4',
-    date: Date.now() - 86400_000,
-    prompt: 'Summarize my wallet activity this week',
-    agentCount: 2,
-    cost: 0.008,
-    duration: 5_000,
-    signatures: 0,
-    status: 'COMPLETE',
-  },
-];
+import { useWallet } from '@/hooks/useWallet';
 
 const statusBadge: Record<string, 'green' | 'orange' | 'red'> = {
   COMPLETE: 'green',
@@ -56,7 +15,17 @@ const statusBadge: Record<string, 'green' | 'orange' | 'red'> = {
 };
 
 export function TaskHistory() {
+  const { address } = useWallet();
+  const [history, setHistory] = useState<TaskHistoryEntry[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!address) return;
+    fetch(`/api/tasks/history?address=${address}`)
+      .then((r) => r.json())
+      .then((d) => setHistory(d.tasks ?? []))
+      .catch(() => {});
+  }, [address]);
 
   return (
     <div className="card-surface overflow-hidden">
@@ -77,86 +46,59 @@ export function TaskHistory() {
             </tr>
           </thead>
           <tbody>
-            {MOCK_HISTORY.map((task) => (
-              <>
+            {history.map((task) => (
+              <Fragment key={task.id}>
                 <tr
                   key={task.id}
-                  className={cn(
-                    'cursor-pointer border-b border-white/[0.03] transition-colors hover:bg-white/[0.02]',
-                    expanded === task.id && 'bg-white/[0.02]'
-                  )}
-                  onClick={() =>
-                    setExpanded(expanded === task.id ? null : task.id)
-                  }
+                  className="cursor-pointer border-b border-white/[0.03] transition-colors hover:bg-white/[0.02]"
+                  onClick={() => setExpanded(expanded === task.id ? null : task.id)}
                 >
                   <td className="mono px-5 py-3 text-xs text-muted">
-                    {new Date(task.date).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
+                    {new Date(task.date).toLocaleDateString()}
                   </td>
                   <td className="max-w-[200px] truncate px-5 py-3 text-xs">
                     {task.prompt}
                   </td>
                   <td className="mono px-5 py-3 text-xs">{task.agentCount}</td>
-                  <td className="mono px-5 py-3 text-xs">
-                    {formatUSDC(task.cost)}
-                  </td>
+                  <td className="mono px-5 py-3 text-xs">{formatUSDC(task.cost)}</td>
                   <td className="mono px-5 py-3 text-xs">
                     {formatDuration(task.duration)}
                   </td>
+                  <td className="mono px-5 py-3 text-xs text-primary">{task.signatures}</td>
                   <td className="px-5 py-3">
-                    <span className="mono text-xs font-bold text-primary">
-                      {task.signatures}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3">
-                    <Badge tone={statusBadge[task.status] ?? 'muted'} size="sm">
-                      {task.status}
-                    </Badge>
+                    <Badge tone={statusBadge[task.status] ?? 'muted'}>{task.status}</Badge>
                   </td>
                 </tr>
                 <AnimatePresence>
                   {expanded === task.id && (
                     <tr key={`${task.id}-detail`}>
-                      <td colSpan={7} className="bg-surface/30 px-5">
+                      <td colSpan={7} className="bg-surface/30 px-5 py-4">
                         <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
                         >
-                          <div className="py-4">
-                            <div className="mb-2 text-xs text-muted">
-                              Full prompt
-                            </div>
-                            <div className="mono mb-4 rounded-lg border border-white/5 bg-card p-3 text-xs text-white/80">
-                              {task.prompt}
-                            </div>
-                            <div className="flex gap-6 text-xs text-muted">
-                              <div>
-                                Agents: <span className="text-white">{task.agentCount}</span>
-                              </div>
-                              <div>
-                                Cost: <span className="text-white">{formatUSDC(task.cost)} USDC</span>
-                              </div>
-                              <div>
-                                Duration: <span className="text-white">{formatDuration(task.duration)}</span>
-                              </div>
-                              <div>
-                                Relayed via: <span className="text-info">1Shot</span>
-                              </div>
-                            </div>
-                          </div>
+                          <p className="text-xs text-white/80">{task.prompt}</p>
+                          <Link
+                            href={`/app/task/${task.id}`}
+                            className="mt-2 inline-block text-[11px] text-primary hover:underline"
+                          >
+                            View full task, agents & on-chain payments →
+                          </Link>
                         </motion.div>
                       </td>
                     </tr>
                   )}
                 </AnimatePresence>
-              </>
+              </Fragment>
             ))}
+            {history.length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-5 py-8 text-center text-xs text-muted">
+                  No tasks yet. Connect MetaMask and delegate your first task.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

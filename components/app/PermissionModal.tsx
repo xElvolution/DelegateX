@@ -13,6 +13,7 @@ export interface PermissionModalProps {
   open: boolean;
   onClose: () => void;
   onGrant: (config: PermissionConfig) => void;
+  granting?: boolean;
 }
 
 export interface PermissionConfig {
@@ -45,14 +46,13 @@ const stepVariants = {
   exit: { opacity: 0, x: -30 },
 };
 
-export function PermissionModal({ open, onClose, onGrant }: PermissionModalProps) {
+export function PermissionModal({ open, onClose, onGrant, granting = false }: PermissionModalProps) {
   const [step, setStep] = useState(0);
   const [budget, setBudget] = useState(10);
   const [durationIdx, setDurationIdx] = useState(2);
   const [contracts, setContracts] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(CONTRACTS.map((c) => [c.name, c.default]))
   );
-  const [granting, setGranting] = useState(false);
 
   const duration = DURATIONS[durationIdx];
   const enabledContracts = Object.entries(contracts)
@@ -61,18 +61,13 @@ export function PermissionModal({ open, onClose, onGrant }: PermissionModalProps
   const expiryDate = new Date(Date.now() + duration.ms);
 
   const handleGrant = () => {
-    setGranting(true);
-    setTimeout(() => {
-      onGrant({
-        budget,
-        duration: duration.value,
-        durationLabel: duration.label,
-        contracts: enabledContracts,
-      });
-      setGranting(false);
-      setStep(0);
-      onClose();
-    }, 1500);
+    onGrant({
+      budget,
+      duration: duration.value,
+      durationLabel: duration.label,
+      contracts: enabledContracts,
+    });
+    setStep(0);
   };
 
   const canNext =

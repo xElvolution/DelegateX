@@ -15,9 +15,13 @@ const STATS = [
   { label: 'Avg Signatures Per Task', value: 1, prefix: '', suffix: '', decimals: 0 },
 ];
 
+function scrollToHowItWorks() {
+  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 export function Hero() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[85vh] flex-col items-center justify-center overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="grid-bg absolute inset-0" />
@@ -81,17 +85,16 @@ export function Hero() {
               as="div"
               className="inline-flex h-12 cursor-pointer items-center justify-center rounded-[10px] bg-gradient-to-br from-primary to-primary-dark px-8 text-sm font-bold text-white shadow-glow transition-shadow hover:shadow-glow-lg"
             >
-              Launch App
+              Open App
             </MagneticButton>
           </Link>
-          <Link href="/how-it-works">
-            <MagneticButton
-              as="div"
-              className="inline-flex h-12 cursor-pointer items-center justify-center rounded-[10px] border border-white/10 bg-transparent px-8 text-sm font-medium text-white transition-colors hover:border-white/25 hover:bg-white/5"
-            >
-              How It Works
-            </MagneticButton>
-          </Link>
+          <MagneticButton
+            as="button"
+            onClick={scrollToHowItWorks}
+            className="inline-flex h-12 cursor-pointer items-center justify-center rounded-[10px] border border-white/10 bg-transparent px-8 text-sm font-medium text-white transition-colors hover:border-white/25 hover:bg-white/5"
+          >
+            How It Works
+          </MagneticButton>
         </motion.div>
       </div>
 

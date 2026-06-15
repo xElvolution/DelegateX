@@ -8,6 +8,7 @@ export interface OrchestratorParams {
   permission: Permission;
   taskId: string;
   onProgress: (update: AgentUpdate) => void;
+  ws?: unknown;
 }
 
 export async function runTask(params: OrchestratorParams): Promise<TaskResult> {

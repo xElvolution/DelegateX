@@ -32,6 +32,7 @@ const DEMO_PERMISSION: Permission = {
 
 export function useDemo() {
   const [state, setState] = useState<DemoState>(initialDemoState());
+  const [permissionGranted, setPermissionGranted] = useState(true);
   const [permission, setPermission] = useState<Permission>(DEMO_PERMISSION);
   const [running, setRunning] = useState(false);
   const stepsRef = useRef(createDemoSteps());
@@ -115,7 +116,9 @@ export function useDemo() {
 
   return {
     state,
-    permission,
+    permission: permissionGranted ? permission : null,
+    permissionGranted,
+    setPermissionGranted,
     running,
     start,
     stop,

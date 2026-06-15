@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { uid } from '@/lib/utils';
+import { createPermission } from '@/lib/data';
 
 const schema = z.object({
+  address: z.string(),
   token: z.string(),
   maxAmount: z.number().positive(),
   period: z.number().positive(),
   expiry: z.number().positive(),
   allowedContracts: z.array(z.string()),
+  erc7715Sig: z.string().optional(),
+  grantTxHash: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -15,17 +18,17 @@ export async function POST(req: Request) {
     const body = await req.json();
     const data = schema.parse(body);
 
-    return NextResponse.json({
-      id: `perm_${uid()}`,
-      status: 'ACTIVE',
-      token: data.token,
+    const permission = await createPermission({
+      userAddress: data.address,
       maxAmount: data.maxAmount,
-      period: data.period,
+      periodSeconds: data.period,
       expiry: data.expiry,
       allowedContracts: data.allowedContracts,
-      erc7715Sig: `0x${'0'.repeat(130)}`,
-      createdAt: Date.now(),
+      erc7715Sig: data.erc7715Sig,
+      grantTxHash: data.grantTxHash,
     });
+
+    return NextResponse.json({ permission });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Invalid request' },

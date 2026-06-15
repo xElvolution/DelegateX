@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server';
+import { getActivePermissions } from '@/lib/data';
 
-export async function GET() {
-  return NextResponse.json({
-    permissions: [
-      {
-        id: 'perm_demo',
-        status: 'ACTIVE',
-        token: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        tokenSymbol: 'USDC',
-        maxAmount: 10,
-        period: 3600,
-        expiry: Date.now() + 24 * 3600_000,
-        spent: 2.57,
-        remaining: 7.43,
-        allowedContracts: ['Venice AI', 'DeFiLlama', 'Uniswap v3', 'Aave v3'],
-      },
-    ],
-  });
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const address = searchParams.get('address');
+
+  if (!address) {
+    return NextResponse.json({ error: 'address required' }, { status: 400 });
+  }
+
+  const permissions = await getActivePermissions(address);
+  return NextResponse.json({ permissions });
 }

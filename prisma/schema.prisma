@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection (Neon -pooler host) for app runtime queries.
+  url       = env("DATABASE_URL")
+  // Direct (unpooled) connection for migrations — pgbouncer can't run them.
+  directUrl = env("DATABASE_DIRECT_URL")
 }
 
 model User {
@@ -27,6 +30,7 @@ model Permission {
   allowedContracts String[]
   active           Boolean   @default(true)
   erc7715Sig       String?
+  grantTxHash      String?
   createdAt        DateTime  @default(now())
   revokedAt        DateTime?
   tasks            Task[]
@@ -54,14 +58,15 @@ model SubAgent {
   id          String    @id @default(cuid())
   taskId      String
   task        Task      @relation(fields: [taskId], references: [id])
-  agentType   String
-  budget      Float
-  spent       Float     @default(0)
-  status      String    @default("PENDING")
-  result      String?
-  createdAt   DateTime  @default(now())
-  completedAt DateTime?
-  payments    Payment[]
+  agentType      String
+  budget         Float
+  spent          Float     @default(0)
+  status         String    @default("PENDING")
+  result         String?
+  registerTxHash String?
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+  payments       Payment[]
 }
 
 model Payment {

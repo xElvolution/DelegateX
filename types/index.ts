@@ -16,6 +16,56 @@ export interface Permission {
   status: PermissionStatus;
   grantedAt: number;
   erc7715Sig?: string;
+  grantTxHash?: string; // on-chain DelegateCore.grantPermission tx
+}
+
+export interface OnchainPayment {
+  id: string;
+  taskId: string;
+  amount: number;
+  recipient: string;
+  txHash: string;
+  via: 'ONESHOT' | 'VIEM';
+  createdAt: number;
+}
+
+export interface AgentSummary {
+  id: string;
+  taskId: string;
+  taskPrompt?: string;
+  agentType: string;
+  budget: number;
+  spent: number;
+  status: 'ACTIVE' | 'COMPLETE' | 'ERROR';
+  lastAction?: string;
+  txHash?: string; // on-chain SubAgentRegistry registration, if any
+  createdAt: number;
+}
+
+export type ActivityKind = 'PERMISSION_GRANT' | 'PAYMENT' | 'AGENT_REGISTER';
+
+export interface ActivityItem {
+  id: string;
+  kind: ActivityKind;
+  label: string;
+  detail?: string;
+  amount?: number;
+  txHash?: string;
+  createdAt: number;
+}
+
+export interface TaskDetail {
+  id: string;
+  prompt: string;
+  status: TaskStatus;
+  result?: string;
+  totalCost: number;
+  agentCount: number;
+  duration?: number;
+  createdAt: number;
+  completedAt?: number;
+  agents: AgentSummary[];
+  payments: OnchainPayment[];
 }
 
 export interface AllowedContract {

@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import type { FeedEvent } from '@/types';
 import { cn, formatRelativeTime, formatUSDC, truncateAddress } from '@/lib/utils';
+import { txUrl } from '@/lib/contracts';
 import { useEffect, useRef } from 'react';
 
 const borderColors: Record<string, string> = {
@@ -74,13 +75,18 @@ export function FeedItem({ event }: FeedItemProps) {
           )}
           {event.amount != null && event.type === 'PAYMENT_MADE' && (
             <div className="mono mt-0.5 text-[10px] text-info">
-              {formatUSDC(event.amount)} via 1Shot
+              {formatUSDC(event.amount)} USDC
             </div>
           )}
           {event.oneShotTx && (
-            <div className="mono mt-0.5 text-[10px] text-muted">
-              1Shot tx: {truncateAddress(event.oneShotTx, 6)}
-            </div>
+            <a
+              href={txUrl(event.oneShotTx)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mono mt-0.5 inline-flex items-center gap-1 text-[10px] text-info hover:underline"
+            >
+              {truncateAddress(event.oneShotTx, 6)} ↗ Basescan
+            </a>
           )}
         </div>
         <span className="shrink-0 text-[10px] text-muted">

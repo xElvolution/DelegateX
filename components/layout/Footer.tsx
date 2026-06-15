@@ -1,24 +1,16 @@
 import Link from 'next/link';
 
 const LINKS = [
-  { label: 'App', href: '/app' },
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'How It Works', href: '/how-it-works' },
-  { label: 'Docs', href: '/docs' },
+  { label: 'Open App', href: '/app' },
+  { label: 'How It Works', href: '/#how-it-works' },
 ];
 
-const TECH = [
-  'MetaMask SDK',
-  'Venice AI',
-  '1Shot',
-  'x402',
-];
+const TECH = ['MetaMask SDK', 'Venice AI', '1Shot', 'x402'];
 
 export function Footer() {
   return (
     <footer className="border-t border-white/5 bg-bg py-12">
       <div className="container-app">
-        {/* Top */}
         <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div>
             <div className="flex items-center gap-2.5">
@@ -45,7 +37,6 @@ export function Footer() {
           </nav>
         </div>
 
-        {/* Tech row */}
         <div className="mt-8 flex flex-wrap items-center gap-2 text-xs text-muted">
           <span>Built with</span>
           {TECH.map((t, i) => (
@@ -56,7 +47,6 @@ export function Footer() {
           ))}
         </div>
 
-        {/* Bottom */}
         <div className="mt-6 border-t border-white/5 pt-6 text-center text-xs text-muted">
           Submitted to MetaMask Smart Accounts Kit &times; 1Shot API &times; Venice AI Dev Cook Off
         </div>

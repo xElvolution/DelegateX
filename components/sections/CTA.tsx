@@ -26,7 +26,7 @@ export function CTA() {
               as="div"
               className="inline-flex h-14 cursor-pointer items-center justify-center rounded-[12px] bg-gradient-to-br from-primary to-primary-dark px-10 text-base font-bold text-white shadow-glow transition-shadow hover:shadow-glow-lg"
             >
-              Launch App
+              Open App
             </MagneticButton>
           </Link>
         </ScrollReveal>

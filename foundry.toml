@@ -1,0 +1,18 @@
+[profile.default]
+src = "contracts"
+out = "out"
+script = "script"
+libs = ["node_modules", "lib"]
+solc_version = "0.8.20"
+optimizer = true
+optimizer_runs = 200
+fs_permissions = [{ access = "read-write", path = "./" }]
+
+[rpc_endpoints]
+base_sepolia = "https://sepolia.base.org"
+
+[etherscan]
+# Etherscan V2 unified multichain endpoint (V1 endpoints deprecated 2025+).
+# A single BASESCAN_API_KEY works across every V2-supported chain — the chain
+# id MUST be embedded in the URL as a query string for V2.
+base_sepolia = { key = "${BASESCAN_API_KEY}", url = "https://api.etherscan.io/v2/api?chainid=84532" }

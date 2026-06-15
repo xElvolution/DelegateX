@@ -1,30 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/Progress';
-import { formatCountdown } from '@/lib/utils';
-
-const MOCK_PERMISSIONS = [
-  {
-    id: '1',
-    token: 'USDC',
-    max: '$10 / hour',
-    spent: 2.57,
-    total: 10,
-    expires: Date.now() + 23 * 3600_000 + 14 * 60_000,
-    contracts: 4,
-    active: true,
-  },
-];
+import { formatCountdown, formatUSDC, truncateAddress } from '@/lib/utils';
+import { txUrl } from '@/lib/contracts';
+import { useWallet } from '@/hooks/useWallet';
+import { usePermission } from '@/hooks/usePermission';
+import type { Permission } from '@/types';
 
 export function PermissionManager() {
-  const [perms, setPerms] = useState(MOCK_PERMISSIONS);
+  const { address } = useWallet();
+  const { permissions, revokePermission } = usePermission();
+  const [local, setLocal] = useState<Permission[]>([]);
 
-  const handleRevoke = (id: string) => {
-    setPerms((prev) => prev.filter((p) => p.id !== id));
+  useEffect(() => {
+    setLocal(permissions);
+  }, [permissions]);
+
+  const handleRevoke = async (id: string) => {
+    const ok = await revokePermission(id);
+    if (ok) setLocal((prev) => prev.filter((p) => p.id !== id));
   };
+
+  if (!address) {
+    return (
+      <div className="card-surface px-5 py-8 text-center text-xs text-muted">
+        Connect MetaMask to manage permissions.
+      </div>
+    );
+  }
 
   return (
     <div className="card-surface overflow-hidden">
@@ -40,45 +46,60 @@ export function PermissionManager() {
               <th className="px-5 py-3 text-left font-semibold">Spent</th>
               <th className="px-5 py-3 text-left font-semibold">Expires</th>
               <th className="px-5 py-3 text-left font-semibold">Contracts</th>
+              <th className="px-5 py-3 text-left font-semibold">Grant Tx</th>
               <th className="px-5 py-3 text-right font-semibold">Action</th>
             </tr>
           </thead>
           <tbody>
-            {perms.map((p) => (
+            {local.map((p) => (
               <tr key={p.id} className="border-b border-white/[0.03]">
                 <td className="px-5 py-3">
-                  <Badge tone="blue">{p.token}</Badge>
+                  <Badge tone="blue">{p.tokenSymbol}</Badge>
                 </td>
-                <td className="mono px-5 py-3 text-xs">{p.max}</td>
+                <td className="mono px-5 py-3 text-xs">
+                  {formatUSDC(p.maxAmount)} / {p.periodLabel}
+                </td>
                 <td className="px-5 py-3">
                   <Progress
                     value={p.spent}
-                    max={p.total}
+                    max={p.maxAmount}
                     variant="orange"
                     size="sm"
                     className="w-24"
                   />
                 </td>
                 <td className="mono px-5 py-3 text-xs text-muted">
-                  {formatCountdown(p.expires)}
+                  {formatCountdown(p.expiry)}
                 </td>
                 <td className="px-5 py-3">
-                  <Badge tone="muted">{p.contracts} contracts</Badge>
+                  <Badge tone="muted">
+                    {p.allowedContracts.filter((c) => c.enabled).length} contracts
+                  </Badge>
+                </td>
+                <td className="mono px-5 py-3 text-xs">
+                  {p.grantTxHash ? (
+                    <a
+                      href={txUrl(p.grantTxHash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-info hover:underline"
+                    >
+                      {truncateAddress(p.grantTxHash, 5)} ↗
+                    </a>
+                  ) : (
+                    <span className="text-muted">off-chain</span>
+                  )}
                 </td>
                 <td className="px-5 py-3 text-right">
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleRevoke(p.id)}
-                  >
+                  <Button variant="danger" size="sm" onClick={() => void handleRevoke(p.id)}>
                     Revoke
                   </Button>
                 </td>
               </tr>
             ))}
-            {perms.length === 0 && (
+            {local.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-xs text-muted">
+                <td colSpan={7} className="px-5 py-8 text-center text-xs text-muted">
                   No active permissions.
                 </td>
               </tr>

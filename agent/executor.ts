@@ -8,11 +8,13 @@ export interface AgentUpdate {
     | 'PAYMENT_MADE'
     | 'SUBTASK_COMPLETE'
     | 'TASK_COMPLETE'
-    | 'ERROR';
+    | 'ERROR'
+    | 'PLANNING';
   agentId?: string;
   agentType?: string;
   amount?: number;
   message?: string;
+  oneShotTx?: string;
   timestamp: number;
 }
 
@@ -54,6 +56,7 @@ export async function executeTask(params: ExecuteParams): Promise<TaskResult> {
           type: 'AGENT_SPAWNED',
           agentId: subtask.id,
           agentType: subtask.type,
+          message: subtask.description,
           timestamp: Date.now(),
         });
 
@@ -63,12 +66,15 @@ export async function executeTask(params: ExecuteParams): Promise<TaskResult> {
           type: 'PAYMENT_MADE',
           agentId: subtask.id,
           amount: result.cost,
+          message: subtask.type === 'DATA_FETCH' ? 'DeFiLlama API' : subtask.type === 'AI_INFERENCE' ? 'Venice AI' : subtask.type === 'CHAIN_WRITE' ? 'Uniswap v3' : 'Ethereum RPC',
+          oneShotTx: result.oneShotTx,
           timestamp: Date.now(),
         });
 
         params.onProgress({
           type: 'SUBTASK_COMPLETE',
           agentId: subtask.id,
+          message: typeof result.data === 'string' ? result.data.slice(0, 120) : 'Complete',
           timestamp: Date.now(),
         });
 
