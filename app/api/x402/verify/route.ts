@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { publicClient } from '@/lib/wagmi';
+import { publicClient } from '@/lib/chain';
 
 const schema = z.object({
   txHash: z.string(),

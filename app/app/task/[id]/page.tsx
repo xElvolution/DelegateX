@@ -85,7 +85,7 @@ export default function TaskDetailPage() {
               <Stat label="Total cost" value={`${formatUSDC(task.totalCost)}`} />
               <Stat
                 label="Duration"
-                value={task.duration ? formatDuration(task.duration) : '—'}
+                value={task.duration ? formatDuration(task.duration) : '-'}
               />
             </div>
           </div>

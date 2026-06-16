@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createWalletClient, http, parseUnits, keccak256, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { publicClient, activeChain } from '@/lib/wagmi';
+import { publicClient, activeChain } from '@/lib/chain';
 import {
   CONTRACTS,
   SUB_AGENT_REGISTRY_ABI,

@@ -13,7 +13,7 @@ const SECTIONS = [
     content: [
       'DELEGATE uses ERC-7715, a new standard for smart account permissions. When you grant a permission, you define exactly what DELEGATE can do: which tokens it can spend, how much per period, which contracts it can interact with, and when the permission expires.',
       'This is fundamentally different from token approvals. A traditional approval gives unlimited access to a specific token. An ERC-7715 permission is scoped, time-limited, and revocable at any time. Your MetaMask Smart Account enforces these constraints on-chain.',
-      'You sign once. The permission lives on your smart account. Every future agent action is validated against this permission automatically — no more wallet popups.',
+      'You sign once. The permission lives on your smart account. Every future agent action is validated against this permission automatically - no more wallet popups.',
     ],
     code: `// ERC-7715 Permission Request
 wallet_grantPermissions({
@@ -37,8 +37,8 @@ wallet_grantPermissions({
     title: 'Agent Coordination',
     tag: 'ERC-7710',
     content: [
-      'When you submit a task, DELEGATE\'s orchestrator uses Venice AI to break it into subtasks. Each subtask gets its own specialized agent — a Data Fetcher, Chain Analyzer, AI Inference engine, or Executor.',
-      'Each sub-agent receives a narrower permission slice via ERC-7710 redelegation. If you granted $10/hour, a Data Fetcher might get $1 with a 5-minute expiry. The sub-agent literally cannot exceed its budget — the smart contract enforces it.',
+      'When you submit a task, DELEGATE\'s orchestrator uses Venice AI to break it into subtasks. Each subtask gets its own specialized agent - a Data Fetcher, Chain Analyzer, AI Inference engine, or Executor.',
+      'Each sub-agent receives a narrower permission slice via ERC-7710 redelegation. If you granted $10/hour, a Data Fetcher might get $1 with a 5-minute expiry. The sub-agent literally cannot exceed its budget - the smart contract enforces it.',
       'Sub-agents work in parallel when possible and sequentially when there are dependencies. The orchestrator monitors progress and synthesizes results when all subtasks complete.',
     ],
     code: `// ERC-7710 Redelegation
@@ -59,7 +59,7 @@ contract.spawnSubAgent({
     title: 'Autonomous Payments',
     tag: 'x402 + 1Shot',
     content: [
-      'Sub-agents pay for resources using the x402 protocol — an HTTP-native payment standard. When an agent hits a paywalled API, the server responds with HTTP 402 and a payment request. The agent pays automatically using its delegated budget.',
+      'Sub-agents pay for resources using the x402 protocol - an HTTP-native payment standard. When an agent hits a paywalled API, the server responds with HTTP 402 and a payment request. The agent pays automatically using its delegated budget.',
       'All payments are relayed through 1Shot\'s permissionless relayer. 1Shot takes the ERC-7710 delegation and executes the payment on-chain without requiring the agent to hold any keys. The relayer verifies the delegation is valid, the budget isn\'t exceeded, and the target contract is allowed.',
       'The result: machine-to-machine payments that are instant, verifiable, and constrained by the user\'s original permission. No human in the loop.',
     ],
@@ -89,7 +89,7 @@ X-Payment-Proof: 0x...
     title: 'Privacy-First AI',
     tag: 'Venice AI',
     content: [
-      'DELEGATE uses Venice AI for all inference — task planning, data synthesis, and result generation. Venice runs Llama 3.3 70B with a privacy-first architecture: your prompts and data are never stored, logged, or used for training.',
+      'DELEGATE uses Venice AI for all inference - task planning, data synthesis, and result generation. Venice runs Llama 3.3 70B with a privacy-first architecture: your prompts and data are never stored, logged, or used for training.',
       'This matters for Web3. When you ask DELEGATE to analyze your portfolio or find yield opportunities, the AI never sees your wallet address in a way that can be traced back to you. Venice\'s infrastructure ensures inference privacy by default.',
     ],
     code: null,
@@ -99,7 +99,7 @@ X-Payment-Proof: 0x...
     title: 'Security Model',
     tag: 'Defense in depth',
     content: [
-      'DELEGATE\'s security is enforced at multiple layers. On-chain: the smart contract checks every agent action against the user\'s permission — budget limits, allowed contracts, expiry times, and reentrancy guards. Off-chain: the orchestrator validates all sub-agent actions before submission.',
+      'DELEGATE\'s security is enforced at multiple layers. On-chain: the smart contract checks every agent action against the user\'s permission - budget limits, allowed contracts, expiry times, and reentrancy guards. Off-chain: the orchestrator validates all sub-agent actions before submission.',
       'Key constraints: agents cannot spend more than their budget. Agents cannot interact with unapproved contracts. Permissions expire automatically. Users can revoke instantly. Sub-agent permissions are always narrower than the parent. The 1Shot relayer independently verifies every delegation.',
       'The contract includes Pausable for emergency stops and ReentrancyGuard on all payment functions. There is no admin key that can override user permissions.',
     ],

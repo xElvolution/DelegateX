@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createWalletClient, http, parseEther, parseUnits, isAddress } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { publicClient, activeChain } from '@/lib/wagmi';
+import { publicClient, activeChain } from '@/lib/chain';
 import { CONTRACTS, MOCK_USDC_ABI, contractsConfigured } from '@/lib/contracts';
 import { memoryDb } from '@/lib/memory-db';
 

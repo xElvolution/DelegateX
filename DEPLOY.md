@@ -1,11 +1,11 @@
-# DELEGATE — Real deployment runbook (Base Sepolia)
+# DELEGATE - Real deployment runbook (Base Sepolia)
 
 Everything below is the "install, deploy, connect" sequence. The code is already
 written to run against real on-chain state; this wires it up. No demo mode.
 
 > Two env files, on purpose:
-> - **`.env`** — read by **Foundry** (`forge`). Holds `PRIVATE_KEY` for deploying.
-> - **`.env.local`** — read by **Next.js**. Holds `NEXT_PUBLIC_*`, agent + 1Shot + Venice keys.
+> - **`.env`** - read by **Foundry** (`forge`). Holds `PRIVATE_KEY` for deploying.
+> - **`.env.local`** - read by **Next.js**. Holds `NEXT_PUBLIC_*`, agent + 1Shot + Venice keys.
 
 ---
 
@@ -17,7 +17,7 @@ forge install foundry-rs/forge-std # provides forge-std/Script.sol
 ```
 
 If `forge install` complains about a dirty tree, commit your current changes
-first — newer forge requires a clean git state.
+first - newer forge requires a clean git state.
 
 ## 1. Compile the contracts
 
@@ -98,7 +98,7 @@ Either way the tx is real and verifiable on Basescan.
 Get a key at https://venice.ai (API settings) → `VENICE_API_KEY` in `.env.local`.
 Without it, planning/inference fall back to canned text (no fake on-chain data).
 
-## 7. (Optional) Persistent DB — Neon Postgres
+## 7. (Optional) Persistent DB - Neon Postgres
 
 Without `DATABASE_URL` the app uses an in-memory store (data resets on restart).
 For persistence across restarts (recommended for judging), use Neon:

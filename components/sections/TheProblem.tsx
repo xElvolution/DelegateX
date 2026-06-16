@@ -3,9 +3,9 @@
 import { ScrollReveal } from '@/components/animations/ScrollReveal';
 
 const OLD_WAY = [
-  'Agent wants data — sign tx',
-  'Agent needs to swap — sign tx',
-  'Agent wants to rebalance — sign tx',
+  'Agent wants data - sign tx',
+  'Agent needs to swap - sign tx',
+  'Agent wants to rebalance - sign tx',
 ];
 
 const NEW_WAY = [

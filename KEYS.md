@@ -1,4 +1,4 @@
-# API keys & secrets — acquisition guide
+# API keys & secrets - acquisition guide
 
 Status of your `.env.local` as of setup. Get the ones marked **NEEDED**; the
 rest are optional (the app runs without them).
@@ -18,14 +18,14 @@ rest are optional (the app runs without them).
 
 ---
 
-## 1. Venice AI — `VENICE_API_KEY`  ← get this first
+## 1. Venice AI - `VENICE_API_KEY`  ← get this first
 
 Without it, task planning and synthesis fall back to canned text (on-chain txs
 are still real, but the "AI" part is fake). It's a sponsor, so you want it real.
 
 1. Go to <https://venice.ai> and sign in.
 2. Open **Settings → API** (or <https://venice.ai/settings/api>).
-3. Venice API access requires either a Pro account or VVV staking — check the
+3. Venice API access requires either a Pro account or VVV staking - check the
    API page for the current requirement.
 4. Click **Generate New API Key**, copy it.
 5. Put it in `.env.local`:
@@ -33,10 +33,10 @@ are still real, but the "AI" part is fake). It's a sponsor, so you want it real.
    VENICE_API_KEY=your_key_here
    ```
 6. Confirm the model id. The code uses `llama-3.3-70b`. Verify it's listed at
-   <https://docs.venice.ai/api-reference/endpoint/models/list> — if Venice
+   <https://docs.venice.ai/api-reference/endpoint/models/list> - if Venice
    renamed it, update the three `model:` lines in `lib/venice.ts`.
 
-## 2. 1Shot transfer method — `ONESHOT_METHOD_TRANSFER`  ← upgrades spending path
+## 2. 1Shot transfer method - `ONESHOT_METHOD_TRANSFER`  ← upgrades spending path
 
 You already have the 1Shot account, API key, secret, and Business ID. The only
 missing piece is the configured contract-method endpoint id. Without it, agent
@@ -64,7 +64,7 @@ spends use the viem-direct fallback (still real txs, just not via 1Shot).
    ```
    When set, `relaySpend()` automatically routes through 1Shot instead of viem.
 
-## 3. MetaMask Embedded Wallets — `NEXT_PUBLIC_WEB3AUTH_CLIENT_ID`  ← optional
+## 3. MetaMask Embedded Wallets - `NEXT_PUBLIC_WEB3AUTH_CLIENT_ID`  ← optional
 
 Enables social/email sign-in (Phase 5). Without it, the app uses normal MetaMask.
 
@@ -79,7 +79,7 @@ Enables social/email sign-in (Phase 5). Without it, the app uses normal MetaMask
    NEXT_PUBLIC_WEB3AUTH_NETWORK=devnet
    ```
 
-## 4. WalletConnect — `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`  ← optional
+## 4. WalletConnect - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`  ← optional
 
 Only needed if you want the WalletConnect connector (mobile wallets) in the
 injected-MetaMask path.
@@ -90,7 +90,7 @@ injected-MetaMask path.
    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id
    ```
 
-## 5. Neon Postgres (persistence) — `DATABASE_URL` + `DATABASE_DIRECT_URL`  ← optional
+## 5. Neon Postgres (persistence) - `DATABASE_URL` + `DATABASE_DIRECT_URL`  ← optional
 
 Without these, the app uses an in-memory store (data resets when the server
 restarts). For data that survives restarts (nice for judging):

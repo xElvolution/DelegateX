@@ -19,7 +19,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://delegate.app'),
   title: {
-    default: 'DELEGATE — One permission. Infinite agents.',
+    default: 'DELEGATE - One permission. Infinite agents.',
     template: '%s · DELEGATE',
   },
   description:
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     apple: '/logo.png',
   },
   openGraph: {
-    title: 'DELEGATE — One permission. Infinite agents.',
+    title: 'DELEGATE - One permission. Infinite agents.',
     description:
       'Autonomous wallet intelligence, powered by MetaMask Smart Accounts Kit.',
     url: 'https://delegate.app',

@@ -8,7 +8,7 @@ import { useWallet } from '@/hooks/useWallet';
 
 /// Sign-in button when MetaMask Embedded Wallets is active. The connect modal
 /// is the unified Embedded Wallets modal: Google / X / Facebook / Email / Phone
-/// / MetaMask / All Wallets — all in one place.
+/// / MetaMask / All Wallets - all in one place.
 export function EmbeddedWalletButton() {
   const { connect, loading: connecting } = useWeb3AuthConnect();
   const { disconnect } = useWeb3AuthDisconnect();

@@ -14,7 +14,7 @@ export function createSiweMessage(params: {
   const message = new SiweMessage({
     domain: params.domain || 'delegate.app',
     address: params.address,
-    statement: 'Sign in to DELEGATE — Autonomous Wallet Intelligence',
+    statement: 'Sign in to DELEGATE - Autonomous Wallet Intelligence',
     uri: params.uri || 'https://delegate.app',
     version: '1',
     chainId: params.chainId,

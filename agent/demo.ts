@@ -217,7 +217,7 @@ export function createDemoSteps(): DemoStep[] {
         };
       },
     },
-    // 3: Agent A — 1Shot relay
+    // 3: Agent A - 1Shot relay
     {
       delay: 2000,
       action: (state, emit) => {
@@ -225,7 +225,7 @@ export function createDemoSteps(): DemoStep[] {
         return {};
       },
     },
-    // 4: Agent A — payment confirmed
+    // 4: Agent A - payment confirmed
     {
       delay: 1200,
       action: (state, emit) => {
@@ -256,7 +256,7 @@ export function createDemoSteps(): DemoStep[] {
         return { agents: [...state.agents, b] };
       },
     },
-    // 6: Agent B — 1Shot relay
+    // 6: Agent B - 1Shot relay
     {
       delay: 2000,
       action: (state, emit) => {
@@ -264,7 +264,7 @@ export function createDemoSteps(): DemoStep[] {
         return {};
       },
     },
-    // 7: Agent B — payment confirmed
+    // 7: Agent B - payment confirmed
     {
       delay: 1200,
       action: (state, emit) => {
@@ -292,7 +292,7 @@ export function createDemoSteps(): DemoStep[] {
         return { agents: [...state.agents, c] };
       },
     },
-    // 9: Agent C — 1Shot relay
+    // 9: Agent C - 1Shot relay
     {
       delay: 3000,
       action: (state, emit) => {
@@ -300,7 +300,7 @@ export function createDemoSteps(): DemoStep[] {
         return {};
       },
     },
-    // 10: Agent C — payment confirmed
+    // 10: Agent C - payment confirmed
     {
       delay: 1200,
       action: (state, emit) => {
@@ -344,7 +344,7 @@ export function createDemoSteps(): DemoStep[] {
         return { agents };
       },
     },
-    // 13: Agent D — 1Shot relay
+    // 13: Agent D - 1Shot relay
     {
       delay: 2000,
       action: (state, emit) => {
@@ -352,7 +352,7 @@ export function createDemoSteps(): DemoStep[] {
         return {};
       },
     },
-    // 14: Agent D — payment confirmed
+    // 14: Agent D - payment confirmed
     {
       delay: 1200,
       action: (state, emit) => {

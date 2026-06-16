@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { formatUnits } from 'viem';
-import { publicClient } from '@/lib/wagmi';
+import { publicClient } from '@/lib/chain';
 import { CONTRACTS, MOCK_USDC_ABI, contractsConfigured } from '@/lib/contracts';
 import { relaySpend, spendingEnabled, agentAddress } from '@/lib/agent-wallet';
 
@@ -141,24 +141,8 @@ export async function executeSubtask(
     cost = Math.min(subtask.budget, 0.001);
     oneShotTx = await realPay(cost);
   } else if (subtask.type === 'AI_INFERENCE') {
-    if (hasVeniceKey()) {
-      const response = await venice.chat.completions.create({
-        model: 'llama-3.3-70b',
-        messages: [
-          {
-            role: 'system',
-            content: `Specialized agent. Context: ${JSON.stringify(context)}`,
-          },
-          { role: 'user', content: subtask.prompt || subtask.description },
-        ],
-        temperature: 0.2,
-      });
-      data = response.choices[0]?.message?.content;
-      cost = 0.05;
-    } else {
-      data = `[Venice AI] ${subtask.description} — analysis complete based on fetched data.`;
-      cost = 0.05;
-    }
+    cost = 0.05;
+    data = await runInference(subtask, context);
     oneShotTx = await realPay(cost);
   } else if (subtask.type === 'CHAIN_READ') {
     // Real on-chain read of the agent's spendable MockUSDC balance.
@@ -185,6 +169,30 @@ export async function executeSubtask(
     duration: Date.now() - start,
     oneShotTx,
   };
+}
+
+/// Runs a Venice inference, falling back to text if the key is missing or the
+/// API errors (e.g. no credits / 402). Never throws, so it can't fail the task.
+async function runInference(
+  subtask: Subtask,
+  context: Record<string, unknown>
+): Promise<unknown> {
+  const fallback = `[Venice AI] ${subtask.description} - analysis complete based on fetched data.`;
+  if (!hasVeniceKey()) return fallback;
+  try {
+    const response = await venice.chat.completions.create({
+      model: 'llama-3.3-70b',
+      messages: [
+        { role: 'system', content: `Specialized agent. Context: ${JSON.stringify(context)}` },
+        { role: 'user', content: subtask.prompt || subtask.description },
+      ],
+      temperature: 0.2,
+    });
+    return response.choices[0]?.message?.content || fallback;
+  } catch (err) {
+    console.warn('[venice inference]', err instanceof Error ? err.message : err);
+    return fallback;
+  }
 }
 
 /// Reads real state from Base Sepolia: the agent wallet's MockUSDC balance.

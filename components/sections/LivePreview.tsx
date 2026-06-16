@@ -25,7 +25,7 @@ export function LivePreview() {
               <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
               <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
               <span className="h-2.5 w-2.5 rounded-full bg-white/10" />
-              <span className="ml-4 text-xs text-muted">DELEGATE — Main App</span>
+              <span className="ml-4 text-xs text-muted">DELEGATE - Main App</span>
             </div>
 
             {/* Three columns */}

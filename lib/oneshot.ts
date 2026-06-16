@@ -119,8 +119,10 @@ async function pollTransaction(id: string, tries = 10): Promise<RelayResult> {
 }
 
 /// Transfer MockUSDC from the 1Shot managed wallet to a recipient.
+/// The configured 1Shot method's inputs are `to` (address) and `value` (uint256),
+/// and 1Shot requires every param value as a string.
 export async function oneShotTransfer(to: string, amountBaseUnits: bigint): Promise<RelayResult> {
-  return executeMethod(METHOD_TRANSFER, { to, amount: amountBaseUnits.toString() });
+  return executeMethod(METHOD_TRANSFER, { to, value: amountBaseUnits.toString() });
 }
 
 async function safeText(res: Response) {

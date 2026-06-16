@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { formatUnits } from 'viem';
-import { publicClient } from '@/lib/wagmi';
+import { publicClient } from '@/lib/chain';
 import { CONTRACTS, MOCK_USDC_ABI, contractsConfigured } from '@/lib/contracts';
 import { agentAddress } from '@/lib/agent-wallet';
 import { isOneShotConfigured } from '@/lib/oneshot';

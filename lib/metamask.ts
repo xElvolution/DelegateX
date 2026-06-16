@@ -50,7 +50,7 @@ export async function requestErc7715Permission(input: GrantPermissionInput) {
           tokenAddress: USDC_ADDRESS as `0x${string}`,
           periodAmount: parseUnits(String(input.budget), 6),
           periodDuration: input.periodSeconds,
-          justification: `DELEGATE autonomous agent spending — up to $${input.budget} USDC per period`,
+          justification: `DELEGATE autonomous agent spending - up to $${input.budget} USDC per period`,
         },
         isAdjustmentAllowed: true,
       },
@@ -79,7 +79,7 @@ export async function getSmartAccountForUser(
     // The kit's WalletClient type requires a non-optional `account`, but viem's
     // base WalletClient bakes `Account | undefined` into every method signature,
     // making the intersection unassignable. We guarded for `address` above, so
-    // this cast is sound — the kit will see a concrete account at runtime.
+    // this cast is sound - the kit will see a concrete account at runtime.
     signer: { walletClient } as never,
   });
 }

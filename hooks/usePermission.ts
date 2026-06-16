@@ -81,7 +81,7 @@ export function usePermission() {
             grantTxHash = hash;
           } catch (err) {
             console.warn('[grantPermission onchain]', err);
-            toast('On-chain grant rejected or failed — saving off-chain', { icon: '⚠️' });
+            toast('On-chain grant rejected or failed - saving off-chain', { icon: '⚠️' });
           }
         }
 

@@ -68,7 +68,7 @@ export function ResultDisplay({
         <div>
           <div className="text-[10px] uppercase tracking-widest text-muted">Duration</div>
           <div className="mono mt-0.5 text-lg font-bold">
-            {task.duration ? formatDuration(task.duration) : '—'}
+            {task.duration ? formatDuration(task.duration) : '-'}
           </div>
         </div>
         <div>

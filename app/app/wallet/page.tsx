@@ -83,7 +83,7 @@ export default function WalletPage() {
       toast.dismiss(id);
       toast.success(
         <a href={txUrl(hash)} target="_blank" rel="noopener noreferrer" className="underline">
-          +1,000 USDC — view on Basescan ↗
+          +1,000 USDC - view on Basescan ↗
         </a>,
         { duration: 6000 }
       );
@@ -115,7 +115,7 @@ export default function WalletPage() {
           <div className="mt-4 text-[10px] uppercase tracking-widest text-muted">
             Test USDC balance
           </div>
-          <div className="mono text-2xl font-bold">{myUsdc ?? '—'}</div>
+          <div className="mono text-2xl font-bold">{myUsdc ?? '-'}</div>
           <Button
             variant="primary"
             glow
@@ -149,7 +149,7 @@ export default function WalletPage() {
           <div className="mt-4 text-[10px] uppercase tracking-widest text-muted">
             Agent USDC balance
           </div>
-          <div className="mono text-2xl font-bold">{status?.agentUsdc ?? '—'}</div>
+          <div className="mono text-2xl font-bold">{status?.agentUsdc ?? '-'}</div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Badge tone={status?.contractsConfigured ? 'green' : 'muted'} dot>
               {status?.contractsConfigured ? 'Contracts live' : 'Not deployed'}

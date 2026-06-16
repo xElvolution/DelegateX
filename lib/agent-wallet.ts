@@ -2,12 +2,12 @@
 //
 // relaySpend() makes a REAL MockUSDC transfer on Base Sepolia and returns a real
 // tx hash. It prefers the 1Shot managed wallet when configured, and otherwise
-// falls back to a viem wallet signing with AGENT_PRIVATE_KEY — so verifiable
+// falls back to a viem wallet signing with AGENT_PRIVATE_KEY - so verifiable
 // on-chain txs work even before the 1Shot dashboard is set up.
 
 import { createWalletClient, http, parseUnits, keccak256, toHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { publicClient, activeChain } from '@/lib/wagmi';
+import { publicClient, activeChain } from '@/lib/chain';
 import { CONTRACTS, MOCK_USDC_ABI, X402_VERIFIER_ABI } from '@/lib/contracts';
 import { isOneShotConfigured, oneShotTransfer } from '@/lib/oneshot';
 
